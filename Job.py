@@ -24,11 +24,12 @@ class Job():
     
     def add_job_daily(self,callback):
         """Add a job to the queue."""
-        time = datetime.time(12, 0, 0)
+        time = datetime.time(12, 0, 0) # 12:00 pm
+        # datetime.datetime.now()
         self.cxt.job_queue.run_daily(callback=callback, time=time, chat_id=self.job_name, name=self.commandName)
     
     def add_job_repeating(self,callback,interval:int):
-        # interval in second
+        # interval in second (run every insterval second later)
         self.cxt.job_queue.run_repeating(callback=callback, interval=interval, chat_id=self.job_name, name=self.commandName)
         ...
     

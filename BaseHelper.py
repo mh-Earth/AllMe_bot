@@ -57,20 +57,32 @@ class Base():
         unique_keys_dict2 = set(dict2.keys()) - set(dict1.keys())
 
         # Find values that are different for common keys
-        different_values = [(key, dict1[key], dict2[key]) for key in common_keys if dict1[key] != dict2[key]]
+        diff_val = [(key, dict1[key], dict2[key]) for key in common_keys if dict1[key] != dict2[key]]
 
         # Create a dictionary of the differences
         differences = {
-            # 'common_keys': common_keys,
-            # 'unique_keys_dict1': unique_keys_dict1,
-            # 'unique_keys_dict2': unique_keys_dict2,
-            'different_values': different_values
+            'common_keys': common_keys,
+            'unique_keys_dict1': unique_keys_dict1,
+            'unique_keys_dict2': unique_keys_dict2,
+            'different_values': diff_val
         }
 
         return differences
     
     @staticmethod
-    def get_diff(dict1, dict2):
+    def get_diff_val(dict1, dict2):
+        # Find keys that are common to both dictionaries
+        common_keys = set(dict1.keys()) & set(dict2.keys())
+
+        # Find values that are different for common keys
+        diff_val = [(key, dict1[key], dict2[key]) for key in common_keys if dict1[key] != dict2[key]]
+
+        # return differences
+        return diff_val
+
+    
+    @staticmethod
+    def is_diff(dict1, dict2):
         # Check for changes in keys
         if set(dict1.keys()) != set(dict2.keys()):
             return True
@@ -82,23 +94,3 @@ class Base():
 
         # No changes detected
         return False
-
-
-if __name__ == "__main__":
-
-    d1 = {
-    'name': 'John',
-    'age': 25,
-    'city': 'Example City',
-    'is_student': True
-    }
-
-    d2 = {
-    'name': 'John',
-    'age': 23,
-    'city': 'Example City',
-    'is_student': False
-    }
-
-    b = Base()
-    print(b.compare_dicts(d1,d2))

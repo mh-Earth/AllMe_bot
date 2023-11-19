@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes
 from .trackinstaHelper import TrackinstaHelper
 from Job import Job
 from .api import Insta
-from Formater import TrackinstaFormater
+from .Template import TrackInstaMessage
 
 
 async def Trackinsta(update:Update,context:ContextTypes.DEFAULT_TYPE):
@@ -11,7 +11,7 @@ async def Trackinsta(update:Update,context:ContextTypes.DEFAULT_TYPE):
     username:str = context.args[0]
     commandName = 'trackinsta'
     helper = TrackinstaHelper(username)
-    formater = TrackinstaFormater()
+    formater = TrackInstaMessage(username=username)
     j = Job(username,commandName,context)
 
 
@@ -94,7 +94,7 @@ async def Trackinsta(update:Update,context:ContextTypes.DEFAULT_TYPE):
     # create initial files (if file exist )
     helper.createDataFile()
     '''Send the first result when start tracking'''
-    await update.effective_message.reply_text(formater.changed(username, insta.publicData()))
+    await update.effective_message.reply_text(formater.initial(insta.publicData()))
     '''Add user in job queue'''
     async def alarm(cxt):
         ''' getting public instagram data for id (follwer ,followee,bio etc..)'''
@@ -104,11 +104,13 @@ async def Trackinsta(update:Update,context:ContextTypes.DEFAULT_TYPE):
         '''Verify whether any earlier data has been stored, and if so, compare it with the new data'''
         if len(storedData) > 0:
             _ , last_value = list(storedData.items())[-1]
-            if helper.get_diff(last_value,new_data):
-                await update.effective_message.reply_text(formater.changed(username, new_data))
+            if helper.is_diff(last_value,new_data):
+                '''Get different values'''
+                diff_val = helper.get_diff_val(last_value,new_data)
+                await update.effective_message.reply_text(formater.changeDeteced(diff_val))
             else:
                 return
         '''Append new data'''
         helper.storeNewData(data=new_data)
-    j.add_job_repeating(alarm,interval=60)
+    j.add_job_daily(alarm)
 

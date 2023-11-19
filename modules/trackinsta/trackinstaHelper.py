@@ -21,7 +21,7 @@ class TrackinstaHelper(Base):
         if os.path.exists(path) and os.path.getsize(path) > 5:
             return True
     
-    def if_file_exist(self,isEmpty:bool=False) -> bool:
+    def if_file_exist(self) -> bool:
         path:str = f'{self.parent_path}/data/{self.command}/{self.fileName}.json'
         if os.path.exists(path):
             return True
