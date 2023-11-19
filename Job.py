@@ -6,18 +6,20 @@ import datetime
 class Job():
     def __init__(self , name:str ,commandName:str ,context:ContextTypes.DEFAULT_TYPE) -> None:
         self.cxt:ContextTypes.DEFAULT_TYPE = context 
-        self.job_id = f"{commandName}_{name}"
+        # acts as job id
+        self.job_name = f"{commandName}_{name}"
         self.commandName = commandName
 
     
     def remove_job_if_exists(self):
-        """Remove job with given name. Returns whether job was removed."""
-        current_jobs = self.cxt.job_queue.get_jobs_by_name(self.job_name)
-        if not current_jobs:
-            return False
+        # """Remove job with given name. Returns whether job was removed."""
+        current_jobs = self.cxt.job_queue.get_jobs_by_name(self.commandName)
+
         for job in current_jobs:
-            job.schedule_removal()
-        return True
+            if job.chat_id == self.job_name:
+                job.schedule_removal()
+                return True
+        return False
         ...
     
     def add_job_daily(self,callback):
@@ -27,14 +29,13 @@ class Job():
     
     def add_job_repeating(self,callback,interval:int):
         # interval in second
-        self.cxt.job_queue.run_repeating(callback=callback, interval=interval, chat_id=self.job_id, name=self.commandName)
+        self.cxt.job_queue.run_repeating(callback=callback, interval=interval, chat_id=self.job_name, name=self.commandName)
         ...
     
-    def remove(self)->str:
+    def remove(self)-> bool:
         """Remove the job if the user changed their mind."""
-        job_removed = self.remove_job_if_exists()
-        text = True if job_removed else False
-        return text
+        return self.remove_job_if_exists()
+
     
     def getAllJobs(self):
         return self.cxt.job_queue.get_jobs_by_name(name=self.commandName)
@@ -43,7 +44,7 @@ class Job():
     def is_job_exits(self):
         all_jobs = self.cxt.job_queue.get_jobs_by_name(name=self.commandName)
         for jobs in all_jobs:
-            if jobs.chat_id == self.job_id:
+            if jobs.chat_id == self.job_name:
                 return True
         return False
     

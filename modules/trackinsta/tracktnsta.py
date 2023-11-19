@@ -5,6 +5,7 @@ from Job import Job
 from .api import Insta
 from Formater import TrackinstaFormater
 
+
 async def Trackinsta(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
     username:str = context.args[0]
@@ -38,12 +39,10 @@ async def Trackinsta(update:Update,context:ContextTypes.DEFAULT_TYPE):
             '''Remove the tracker for given user (/trackinsta <username> remove)'''
             if arg == "remove":
                 success = j.remove()
-                if not success:
+                if success:
                     await update.effective_message.reply_text("Tracker successfully cancelled!") 
                     helper.removeFile()
-                else:
-                    await update.effective_message.reply_text("You have no active tracker.") 
-                return
+                    return
             # '''See the first store data'''
             elif arg == 'initial' :
                 await update.effective_message.reply_text(helper.getInitials())

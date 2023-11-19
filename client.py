@@ -12,7 +12,6 @@ load_dotenv()
 # from telegram as described above
 api_id = os.getenv('API_ID')
 api_hash = os.getenv("API_HASH")
-# token = '"6518368976:AAFP__jfB7OkONbJSzukCjbrDb2bwixQ8vQ"'
 message = "ItsAllMe_bot"
 
 # your phone number

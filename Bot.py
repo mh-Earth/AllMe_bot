@@ -23,7 +23,6 @@ class Bot():
     # Commands
     async def start_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
         if context._user_id == self.USER_ID:
-            # return
             await update.message.reply_text("Hello Sir...")
         else:
             return
@@ -33,7 +32,6 @@ class Bot():
         await update.message.reply_text(help_menu)
 
     async def custom_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
-        print(type(context._user_id))
         await update.effective_message.reply_text(update.message.chat_id)
 
     async def trackinsta_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
@@ -101,6 +99,7 @@ if __name__ == "__main__":
     print("Starting the bot...")
     bot = Bot()
     App = Application.builder().token(bot.TOKEN).build()
+    # App.job_queue.start()
 
     # commands
     
@@ -121,3 +120,4 @@ if __name__ == "__main__":
     print("Polling...")
     App.run_polling(poll_interval=1)
 
+ 
