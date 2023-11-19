@@ -1,12 +1,19 @@
 
 import instaloader
-# from instaloader import Profile
+from dotenv import load_dotenv
+load_dotenv()
+
+'''
+Class for interacting with instragram
+'''
 
 
 class Insta():
     def __init__(self,username:str) -> None:
         self.L = instaloader.Instaloader()
         self.USERNAME = username
+        # self.L.login("hackerslanguage99@gmail.com","FQ!K@d-$uz6YL@L2")
+
         
 
     
@@ -26,7 +33,7 @@ class Insta():
             # bio
             bio = self.profile.biography
             # biography_mentions
-            biography_mentions = self.profile.biography_mentions
+            # biography_mentions = self.profile.biography_mentions
 
             return {
                 "full_name":full_name,

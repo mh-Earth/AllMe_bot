@@ -14,7 +14,7 @@ respponce_key:Final = {
     # "how are you":"I am fine.Wby?",
     # "what is your name":"My name is Ada Lovelace but you can call me loveless",
     "/wiki":"/wiki <your search>",
-    '/trackinsta':"/trackinsta <instagram username>"
+    '/trackinsta':"/trackinsta <instagram username> <options>"
     # hidden commands
 }
 
@@ -26,5 +26,5 @@ help_menu:Final = """
 """
 commands_uesgs:Final = {
     "/wiki":"/wiki <your search>",
-    '/trackinsta':"/trackinsta <insta profile url>"
+    '/trackinsta':"/trackinsta <insta profile url> <option>"
 }

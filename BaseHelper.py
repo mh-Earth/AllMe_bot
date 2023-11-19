@@ -1,25 +1,28 @@
 import os 
 import json
 from datetime import datetime
+import time
 
 '''Base class for all modules helper'''
 class Base():
 
     parent_path = str(os.path.dirname(__file__))
 
-    def now_time(self,) -> str:
-        return datetime.now().strftime("%d|%m|%Y|%H|%M|%S")
+    def tick(self) -> str:
+        return str(round(time.time()))
 
     def createDataFile(self):
+        """if file and folder has already been created"""
         if os.path.exists(fr"{self.parent_path}\data\{self.command}\{self.fileName}.json"):
-            print(f"Allready tracking {self.fileName}")
+            # print(f"Allready tracking {self.fileName}")
             return
         
+        '''if only folder has created'''
         if os.path.exists(fr"{self.parent_path}\data\{self.command}"):
             with open(fr"{self.parent_path}\data\{self.command}\{self.fileName}.json","w") as f:
                 f.write("{}")
 
-
+        # '''create folder and file'''
         else:
             os.makedirs(self.parent_path + fr"\data\{self.command}")
             with open(fr"{self.parent_path}\data\{self.command}\{self.fileName}.json","w") as f:
@@ -36,9 +39,13 @@ class Base():
             x:dict = json.loads(f.read())
 
         with open(f"{self.parent_path}\data\{self.command}\{self.fileName}.json","w") as f:
-            x.update({self.now_time():data})
+            x.update({self.tick():data})
             jsonData = json.dumps(x)
             f.write(jsonData)
+
+
+    def removeFile(self):
+        os.remove(f"{self.parent_path}\data\{self.command}\{self.fileName}.json")
 
     @staticmethod
     def compare_dicts(dict1, dict2):
@@ -54,9 +61,9 @@ class Base():
 
         # Create a dictionary of the differences
         differences = {
-            'common_keys': common_keys,
-            'unique_keys_dict1': unique_keys_dict1,
-            'unique_keys_dict2': unique_keys_dict2,
+            # 'common_keys': common_keys,
+            # 'unique_keys_dict1': unique_keys_dict1,
+            # 'unique_keys_dict2': unique_keys_dict2,
             'different_values': different_values
         }
 
@@ -75,3 +82,23 @@ class Base():
 
         # No changes detected
         return False
+
+
+if __name__ == "__main__":
+
+    d1 = {
+    'name': 'John',
+    'age': 25,
+    'city': 'Example City',
+    'is_student': True
+    }
+
+    d2 = {
+    'name': 'John',
+    'age': 23,
+    'city': 'Example City',
+    'is_student': False
+    }
+
+    b = Base()
+    print(b.compare_dicts(d1,d2))

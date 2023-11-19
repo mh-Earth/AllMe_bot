@@ -1,16 +1,13 @@
 from typing import Final
 from telegram import Update
-from telegram.ext import Application , CommandHandler,MessageHandler,filters,ContextTypes,Updater
+from telegram.ext import Application , CommandHandler,MessageHandler,filters,ContextTypes
 import wikipediaapi
 from dotenv import load_dotenv
 from Const import help_menu,commands_uesgs
-
-from modules.instra.insta import Insta
-from modules.instra.TrackinstaHelper import TrackinstaHelper
-
-from Job import Job
+from modules.trackinsta.tracktnsta import Trackinsta
 import os
 load_dotenv()
+
 
 class Bot():
 
@@ -21,8 +18,6 @@ class Bot():
     def __init__(self) -> None:
         self.wiki=wikipediaapi.Wikipedia('Ada lovelace')
         self.DataPath = "/data"
-
-
 
 
     # Commands
@@ -44,44 +39,7 @@ class Bot():
     async def trackinsta_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
 
         if context._user_id == self.USER_ID:
-            username:str = " ".join(context.args)
-            helper = TrackinstaHelper(username)
-            
-            # cheak for wrrong username schema
-            if not helper.validUserName():
-                await update.effective_message.reply_text(f"Invalied username {username}") 
-                return
-        
-            insta = Insta(username)
-            if not insta.lookup():
-                await  update.effective_message.reply_text(f"Instagram id '{username}' not found") 
-                return
-            
-            await update.effective_message.reply_text(f"Tracking Instagram id {username}") 
-            # create initial files
-            helper.createDataFile()
-            
-            j = Job(f'instatrack_{username}',context)
-
-            async def alarm(cxt):
-                # getting public instagram data for id (follwer ,followee,bio etc..)
-                new_data = insta.publicData()
-                # Loding previouly stored data
-                storedData = helper.loadStoreData()
-
-                if len(storedData) > 0:
-                    _ , last_value = list(storedData.items())[-1]
-                    if helper.get_diff(last_value,new_data):
-                        await update.effective_message.reply_text(new_data)
-                    else:
-                        return
-                else:
-                    await update.effective_message.reply_text(new_data)
-
-                helper.storeNewData(data=new_data)
-
-
-            j.add_job_daily(alarm)
+            await Trackinsta(update,context)
 
                 
                 
@@ -102,7 +60,7 @@ class Bot():
 
             except Exception as e:
                 print(e)
-                await update.effective_message.reply_text("Sorry I couldn't find any info on this toopic on wikipedia")
+                await update.effective_message.reply_text("Sorry I couldn't find any info on this topic on wikipedia")
 
 
     # response
@@ -127,6 +85,7 @@ class Bot():
         else:
             response= self.handel_response(text)
         try:
+
             # if its a normal message not a special command
             await update.message.reply_text(response)
         except Exception:

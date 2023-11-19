@@ -16,7 +16,7 @@ api_hash = os.getenv("API_HASH")
 message = "ItsAllMe_bot"
 
 # your phone number
-phone = '+8801789491587'
+phone = os.getenv('NUMBER')
 
 # creating a telegram session and assigning
 # it to a variable client
