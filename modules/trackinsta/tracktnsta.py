@@ -3,14 +3,14 @@ from telegram.ext import ContextTypes
 from .trackinstaHelper import TrackinstaHelper
 from Job import Job
 from .api import Insta
-from Formater import changed
+from Formater import TrackinstaFormater
 
 async def Trackinsta(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
     username:str = context.args[0]
     commandName = 'trackinsta'
     helper = TrackinstaHelper(username)
-    formater = changed()
+    formater = TrackinstaFormater()
     j = Job(username,commandName,context)
 
 
