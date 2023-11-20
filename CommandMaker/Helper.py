@@ -1,20 +1,27 @@
 import os 
 import json
-from datetime import datetime
 import time
+from dataclasses import dataclass
 
-'''Base class for all modules helper'''
-class Base():
+'''Base class handling file relate works helper'''
+'''Temporary class until db is here'''
+
+@dataclass
+class BaseHelper:
+    commandName:str
+    fileName:str
+
+class BaseHelper:
 
     parent_path = str(os.path.dirname(__file__))
 
-    def tick(self) -> str:
-        return str(round(time.time()))
+    def _tick(self) -> str:
+        return str(time.time())
 
-    def createDataFile(self):
+    def _createDataFile(self):
         """if file and folder has already been created"""
         if os.path.exists(fr"{self.parent_path}\data\{self.command}\{self.fileName}.json"):
-            # print(f"Allready tracking {self.fileName}")
+            # print(f"Already tracking {self.fileName}")
             return
         
         '''if only folder has created'''
@@ -28,27 +35,38 @@ class Base():
             with open(fr"{self.parent_path}\data\{self.command}\{self.fileName}.json","w") as f:
                 f.write("{}")
 
-    def loadStoreData(self) -> dict:
+    def _loadStoreData(self) -> dict:
         with open(f"{self.parent_path}\data\{self.command}\{self.fileName}.json","r") as f:
             data = json.loads(f.read())
-        
+            # print(data)            
         return data
 
-    def storeNewData(self,data:dict):
+    def _storeNewData(self,data:dict):
+        '''Store New data to json file'''
+        # load the data as python dict
         with open(f"{self.parent_path}\data\{self.command}\{self.fileName}.json","r") as f:
             x:dict = json.loads(f.read())
-
+            
+        # update the the dict
         with open(f"{self.parent_path}\data\{self.command}\{self.fileName}.json","w") as f:
-            x.update({self.tick():data})
+            x.update({self._tick():data})
             jsonData = json.dumps(x)
             f.write(jsonData)
 
-
-    def removeFile(self):
+    def _removeFile(self):
+        '''remove command data file'''
         os.remove(f"{self.parent_path}\data\{self.command}\{self.fileName}.json")
 
+    def _if_file_exist(self) -> bool:
+        path:str = f'{self.parent_path}\data\{self.command}\{self.fileName}.json'
+        if os.path.exists(path):
+            return True
+        return False
+
+
     @staticmethod
-    def compare_dicts(dict1, dict2):
+    def _compare_dicts(dict1, dict2):
+        '''use to get difference between to dictionary'''
         # Find keys that are common to both dictionaries
         common_keys = set(dict1.keys()) & set(dict2.keys())
 
@@ -70,7 +88,9 @@ class Base():
         return differences
     
     @staticmethod
-    def get_diff_val(dict1, dict2):
+    def _get_diff_val(dict1, dict2) -> bool:
+        '''same as compare_dicts '''
+
         # Find keys that are common to both dictionaries
         common_keys = set(dict1.keys()) & set(dict2.keys())
 
@@ -82,7 +102,9 @@ class Base():
 
     
     @staticmethod
-    def is_diff(dict1, dict2):
+    def _is_diff(dict1, dict2):
+        '''check if two dictionary are same or not'''
+
         # Check for changes in keys
         if set(dict1.keys()) != set(dict2.keys()):
             return True

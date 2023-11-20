@@ -3,17 +3,24 @@ from telegram import Update
 from telegram.ext import Application , CommandHandler,MessageHandler,filters,ContextTypes
 import wikipediaapi
 from dotenv import load_dotenv
-from Const import help_menu,commands_uesgs
-from modules.trackinsta.tracktnsta import Trackinsta
+from Const import help_menu,commands_usages
+from commands.trackinsta.tracktnsta import TrackInsta
 import os
+import logging
+import coloredlogs
+
+
 load_dotenv()
+
+# logging.basicConfig(level=logging.DEBUG)
+coloredlogs.install(level='INFO', fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
 
 
 class Bot():
 
-    TOKEN:Final = os.getenv("BOT_TOKEN")
-    BOT_USERNAME:Final = os.getenv("BOT_USERNAME")
-    USER_ID:Final = int(os.getenv("USER_ID"))
+    _TOKEN:Final = os.getenv("BOT_TOKEN")
+    _BOT_USERNAME:Final = os.getenv("BOT_USERNAME")
+    _USER_ID:Final = int(os.getenv("USER_ID"))
 
     def __init__(self) -> None:
         self.wiki=wikipediaapi.Wikipedia('Ada lovelace')
@@ -22,9 +29,11 @@ class Bot():
 
     # Commands
     async def start_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
-        if context._user_id == self.USER_ID:
+        if context._user_id == self._USER_ID:
+            logging.warning(f"User {context._user_id} started the bot")
             await update.message.reply_text("Hello Sir...")
         else:
+            logging.warning(f"User ID {context._user_id} tried to access the bot")
             return
 
 
@@ -36,13 +45,16 @@ class Bot():
 
     async def trackinsta_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
 
-        if context._user_id == self.USER_ID:
-            await Trackinsta(update,context)
+        if context._user_id == self._USER_ID:
+            command = TrackInsta(update,context)
+            await command.run()
+        else:
+            logging.warning(f"User ID {context._user_id} tried to access the bot")
 
                 
                 
     async def wikipedia_command(self,update:Update,context:ContextTypes.DEFAULT_TYPE):
-        if context._user_id == self.USER_ID:
+        if context._user_id == self._USER_ID:
             query:str = " ".join(context.args)
             await update.effective_message.reply_text(f"Searching for {query}....")
 
@@ -50,15 +62,19 @@ class Bot():
                 page = self.wiki.page(query)
                 if page.exists():
                     result:str = page.summary[:2024] 
-                    await update.message.reply_text(f"Accodding to wikipedia {result} \n For more:{page.fullurl}")
+                    await update.message.reply_text(f"According to wikipedia {result} \n For more:{page.fullurl}")
 
                 else:
-                    await update.effective_message.reply_text("Sorry I couldn't find any info on this toopic on wikipedia")
+                    await update.effective_message.reply_text("Sorry I couldn't find any info on this topic on wikipedia")
             
 
             except Exception as e:
-                print(e)
+                logging.error(e)
                 await update.effective_message.reply_text("Sorry I couldn't find any info on this topic on wikipedia")
+        
+        else:
+            logging.warning(f"User ID {context._user_id} tried to access the bot")
+
 
 
     # response
@@ -66,8 +82,8 @@ class Bot():
         processed:str = text.lower()
         # print(processed)
 
-        if processed in commands_uesgs:
-            return commands_uesgs[processed]
+        if processed in commands_usages:
+            return commands_usages[processed]
         else:
             return "I do not understand what you wrote..."
 
@@ -75,7 +91,7 @@ class Bot():
         message_type:str = update.message.chat.type
         text : str = update.message.text
 
-        print(f"User ({update.message.chat.id} in {message_type} : {text})")
+        logging.info(f"User ({update.message.chat.id} in {message_type}) : {text}")
 
         if message_type == "group":
             return
@@ -87,18 +103,19 @@ class Bot():
             # if its a normal message not a special command
             await update.message.reply_text(response)
         except Exception:
-            # if its a spicial command
+            # if its a spacial command
             await response(update)
 
 
 
     async def error(self,update:Update,context:ContextTypes.DEFAULT_TYPE):
-        print(f"Update {update} cause error {context.error}")
+        logging.error(f"Update cause error {context.error}")
+        logging.debug(f"Update {update} cause error {context.error}")
 
 if __name__ == "__main__":
-    print("Starting the bot...")
+    logging.info("Starting the bot...")
     bot = Bot()
-    App = Application.builder().token(bot.TOKEN).build()
+    App = Application.builder().token(bot._TOKEN).build()
     # App.job_queue.start()
 
     # commands
@@ -107,7 +124,7 @@ if __name__ == "__main__":
     App.add_handler(CommandHandler('help',bot.help_command))
     App.add_handler(CommandHandler('custom',bot.custom_command))
     # updater command
-    App.add_handler(CommandHandler('wiki',bot.wikipedia_command,has_args=True))
+    App.add_handler(CommandHandler('wiki',bot.wikipedia_command,has_args=True,))
     App.add_handler(CommandHandler('trackinsta',bot.trackinsta_command,has_args=True))
 
     # Messages
@@ -117,7 +134,7 @@ if __name__ == "__main__":
     App.add_error_handler(bot.error)
 
     # Polls the bot
-    print("Polling...")
+    logging.info("Polling...")
     App.run_polling(poll_interval=1)
 
  

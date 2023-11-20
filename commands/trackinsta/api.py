@@ -1,30 +1,33 @@
 
 import instaloader
 from dotenv import load_dotenv
+import logging
+# import os
 load_dotenv()
 
 '''
-Class for interacting with instragram
+Class for interacting with instagram
 '''
 
 
 class Insta():
     def __init__(self,username:str) -> None:
         self.L = instaloader.Instaloader()
-        self.USERNAME = username
-        # self.L.login("hackerslanguage99@gmail.com","FQ!K@d-$uz6YL@L2")
+        self.username = username
+        # self.L.login(os.getenv("INSTA_USERNAME"),os.getenv("INSTA_PASS"))
 
         
 
     
     def publicData(self):
-        if self.lookup():
-            self.profile = instaloader.Profile.from_username(self.L.context, self.USERNAME)
+        is_id_exits = self.lookup()
+        if is_id_exits:
+            self.profile = instaloader.Profile.from_username(self.L.context, self.username)
             # full name
             full_name = self.profile.full_name
-            # follwer
-            follwer = self.profile.followers
-            # follwee
+            # follower
+            follower = self.profile.followers
+            # followee
             followee = self.profile.followees
             # isPrivate
             isPrivate = self.profile.is_private
@@ -36,22 +39,25 @@ class Insta():
             # biography_mentions = self.profile.biography_mentions
 
             return {
-                "full_name":full_name,
-                "follwer":follwer,
-                "followee":followee,
-                "isPrivate":isPrivate,
-                "bio":bio
+                "Full name":full_name,
+                "Follower":follower,
+                "Followee":followee,
+                "Private":isPrivate,
+                "Bio":bio
             }
 
         else:
-            return f"No profile found {self.USERNAME}"
+            logging.info(f"'{self.username}' Not Found!!")
+            return 
     
     def lookup(self):
         try:
-             instaloader.Profile.from_username(self.L.context,self.USERNAME)
+             instaloader.Profile.from_username(self.L.context,self.username)
              return True
         except Exception as e:
+            logging.error(e)
             return False
+            
 
         
     def test(self):

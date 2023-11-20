@@ -1,7 +1,7 @@
 from typing import Final
 
 
-respponce_key:Final = {
+response_key:Final = {
     "/wiki":"/wiki <your search>",
     '/trackinsta':"/trackinsta <instagram username> <options>"
 }
@@ -12,7 +12,7 @@ help_menu:Final = """
 /custom - random thing will happen
 /wiki - search topic from wikipedia
 """
-commands_uesgs:Final = {
+commands_usages:Final = {
     "/wiki":"/wiki <your search>",
     '/trackinsta':"/trackinsta <insta profile url> <option>"
 }
