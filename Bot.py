@@ -3,7 +3,7 @@ from telegram import Update
 from telegram.ext import Application , CommandHandler,MessageHandler,filters,ContextTypes
 import wikipediaapi
 from dotenv import load_dotenv
-from Const import help_menu,commands_usages
+from const import help_menu,commands_usages
 from commands.trackinsta.tracktnsta import TrackInsta
 import os
 import logging
