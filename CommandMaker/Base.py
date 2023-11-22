@@ -8,4 +8,9 @@ class CommandModel(BaseFormatter,BaseHelper,JobController,ABC):
     @abstractclassmethod
     async def run(self):
         ...
-    ...
+
+class CommandBase(ABC):
+
+    @abstractclassmethod
+    async def run(self):
+        ...

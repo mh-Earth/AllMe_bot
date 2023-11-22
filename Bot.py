@@ -1,6 +1,6 @@
 from typing import Final
 from telegram import Update
-from telegram.ext import Application , CommandHandler,MessageHandler,filters,ContextTypes
+from telegram.ext import Application , CommandHandler,MessageHandler,filters,ContextTypes,CallbackContext,Job
 import wikipediaapi
 from dotenv import load_dotenv
 from const import help_menu,commands_usages
@@ -16,11 +16,12 @@ load_dotenv()
 coloredlogs.install(level='INFO', fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
 
 
-class Bot():
+class Main():
 
     _TOKEN:Final = os.getenv("BOT_TOKEN")
     _BOT_USERNAME:Final = os.getenv("BOT_USERNAME")
     _USER_ID:Final = int(os.getenv("USER_ID"))
+    _ADMIN_USER = [int(os.getenv("USER_ID"))]
 
     def __init__(self) -> None:
         self.wiki=wikipediaapi.Wikipedia('Ada lovelace')
@@ -35,7 +36,6 @@ class Bot():
         else:
             logging.warning(f"User ID {context._user_id} tried to access the bot")
             return
-
 
     async def help_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(help_menu)
@@ -114,9 +114,8 @@ class Bot():
 
 if __name__ == "__main__":
     logging.info("Starting the bot...")
-    bot = Bot()
+    bot = Main()
     App = Application.builder().token(bot._TOKEN).build()
-    # App.job_queue.start()
 
     # commands
     

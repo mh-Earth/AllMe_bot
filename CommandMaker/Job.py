@@ -28,14 +28,8 @@ Job schema:
 
 class JobController:
     def __init__(self) -> None:
-
         self.job_name = f"{self.command}_{self.name}"
-    #     # self , name:str ,command:str ,context:ContextTypes.DEFAULT_TYPE
-    #     # self.cxt:ContextTypes.DEFAULT_TYPE = context 
-    #     # # acts as job id
-    #     # self.command = command
-    #     ...
-
+        
     
     def _remove_job_if_exists(self) -> bool:
         """Remove job with given name. Returns whether job was removed."""
@@ -58,7 +52,8 @@ class JobController:
         """Add a repeating job to the queue,run every (interval) seconds later."""
         # interval in second (run every interval second later)
         logging.info(f'New repeating job added interval={interval} command:/{self.command} {self.name}')
-        self.cxt.job_queue.run_repeating(callback=callback, interval=interval, chat_id=self.job_name, name=self.command)
+        job = self.cxt.job_queue.run_repeating(callback=callback, interval=interval, chat_id=self.job_name, name=self.command)
+        # self.c
     
     def _cancel_job(self)-> bool:
         """Remove the job if the user changed their mind."""
