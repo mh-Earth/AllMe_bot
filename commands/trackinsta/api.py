@@ -30,8 +30,6 @@ class Insta():
             followee = self.profile.followees
             # isPrivate
             isPrivate = self.profile.is_private
-            # post
-            # post = self.profile.get_posts()
             # bio
             bio = self.profile.biography
             # biography_mentions
@@ -41,7 +39,7 @@ class Insta():
                 "Username":self.username,
                 "Full name":full_name,
                 "Follower":follower,
-                "Followee":followee,
+                "Following":followee,
                 "Private":isPrivate,
                 "Bio":bio
             }
@@ -73,7 +71,3 @@ class Insta():
         
     def test(self):
         return self.profile.get_profile_pic_url()
-
-if __name__ == "__main__":
-    test = Insta("afnan.aksa")
-    print(test.lookup())

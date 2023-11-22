@@ -7,16 +7,17 @@ option:
     history:
     trackinsta?:
     remove:
+    options?:
     help?:
 
 '''
 
 
 from  CommandMaker.Base import CommandModel
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes,CallbackContext
 from telegram import Update
 from .api import Insta
-from const import trackInsta_help_message
+from const import trackInsta_help_message,trackinsta_option_list
 class TrackInsta(CommandModel):
     def __init__(self,update:Update,cxt:ContextTypes.DEFAULT_TYPE) -> None:
         self.update:Update = update
@@ -26,14 +27,14 @@ class TrackInsta(CommandModel):
         self.args = self.cxt.args
         self.username = self.args[0]
         # required username
-        self.status_option = 'option'
+        self.status_option = 'status'
         self.remove_option = 'remove'
         self.initial_option = 'initial'
         self.history_option = 'history'
         # no username required
         self.help_option = 'help?'
         self.tracking_list_option = 'trackinsta?'
-        self.special_names = [self.help_option,self.tracking_list_option]
+        self.option_list_option = 'options?'
         # ////////////////////////////
         # required for job base class
         self.name = self.username
@@ -66,7 +67,7 @@ class TrackInsta(CommandModel):
         Initials status of <username>
             full_name:name,
             follower:99,
-            followee:100,\n
+            following:100,\n
             '''
         """
         title:str = f"Initials of {self.username}"
@@ -114,6 +115,9 @@ class TrackInsta(CommandModel):
     def _help_message(self):
         return trackInsta_help_message
 
+    def _option_list(self):
+        return trackinsta_option_list
+
     async def run(self):
 
 
@@ -123,7 +127,8 @@ class TrackInsta(CommandModel):
 
         only get the first parameter after username skip others 
         '''
-        if self.username in self.special_names:
+        '''If special username is used.special user name ends with `?` '''
+        if len(self.args) <= 1 and self.username.endswith("?"):
 
             if self.username == self.help_option:
                 await self.update.effective_message.reply_text(self._help_message(),parse_mode='MarkdownV2')
@@ -132,6 +137,14 @@ class TrackInsta(CommandModel):
                 msg = self._tracking_list_message()
                 await self.update.effective_message.reply_text(msg)
                 return
+            elif self.username == self.option_list_option:
+                msg = self._option_list()
+                await self.update.effective_message.reply_text(msg,parse_mode='MarkdownV2')
+                return
+            else:
+                await self.update.effective_message.reply_text(f"Invalid option `{self.username}`")
+                return
+
             
         # '''if any option given'''
         elif len(self.args) > 1:
@@ -143,7 +156,7 @@ class TrackInsta(CommandModel):
                     success = self._remove()
                     if success:
                         await self.update.effective_message.reply_text("Tracker successfully cancelled!") 
-                        self._removeFile()
+                        # self._removeFile()
                         return
                 # '''See the first store data'''
                 elif option == self.initial_option :
@@ -160,16 +173,16 @@ class TrackInsta(CommandModel):
                     await self.update.effective_message.reply_text(self._getStatus())
                     return
 
-                # '''Detailed info on all tracking'''
-                elif option == 'debug' and self.username == self.tracking_list_option:
-                    data = self._getAllJobs()
-                    await self.update.effective_message.reply_text(str(data))
-                    return
-                
                 else:
-                    await self.update.effective_message.reply_text("Invalid option!!!")
+                    await self.update.effective_message.reply_text(f"Invalid option `{option}`")
                     return
-                    
+
+            # '''Detailed info on all tracking'''
+            elif option == 'debug' and self.username == self.tracking_list_option:
+                data = self._getAllJobs()
+                await self.update.effective_message.reply_text(str(data))
+                return
+
             else:
                 await self.update.effective_message.reply_text("You are not tracking this user")
                 return
@@ -197,10 +210,12 @@ class TrackInsta(CommandModel):
         self._createDataFile()
         '''Send the first result when start tracking'''
         await self.update.effective_message.reply_text(self._initialStatus(insta.publicData()))
-
+        '''store first time data'''
+        if len(self._loadStoreData()) == 0:
+            self._storeNewData(data=insta.publicData())
 
         '''Add user in job queue'''
-        async def callback(cxt):
+        async def callback(cxt:CallbackContext):
             ''' getting public instagram data for id (name, follower, followee,bio etc..)'''
             new_data = insta.publicData()
             '''Loading previously stored data'''

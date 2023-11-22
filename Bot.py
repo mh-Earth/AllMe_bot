@@ -7,7 +7,6 @@ from const import help_menu,commands_usages
 from commands.trackinsta.tracktnsta import TrackInsta
 import os
 import logging
-from commands.admin.admin import Alljobs,Loadalljobs
 import coloredlogs
 
 
@@ -38,19 +37,11 @@ class Main():
             logging.warning(f"User ID {context._user_id} tried to access the bot")
             return
 
-
     async def help_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(help_menu)
 
     async def custom_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
         await update.effective_message.reply_text(update.message.chat_id)
-
-    async def loadJobs_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
-        await Loadalljobs(update,context).run()
-
-
-    async def alljobs_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
-        await Alljobs(update,context).run()
 
     async def trackinsta_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
 
@@ -131,8 +122,6 @@ if __name__ == "__main__":
     App.add_handler(CommandHandler('start',bot.start_command))
     App.add_handler(CommandHandler('help',bot.help_command))
     App.add_handler(CommandHandler('custom',bot.custom_command))
-    App.add_handler(CommandHandler('LOADJOBS',bot.loadJobs_command))
-    App.add_handler(CommandHandler('ALLJOBS',bot.alljobs_command))
     # updater command
     App.add_handler(CommandHandler('wiki',bot.wikipedia_command,has_args=True,))
     App.add_handler(CommandHandler('trackinsta',bot.trackinsta_command,has_args=True))
