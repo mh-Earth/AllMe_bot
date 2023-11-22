@@ -1,12 +1,13 @@
 from typing import Final
 from telegram import Update
-from telegram.ext import Application , CommandHandler,MessageHandler,filters,ContextTypes
+from telegram.ext import Application , CommandHandler,MessageHandler,filters,ContextTypes,CallbackContext,Job
 import wikipediaapi
 from dotenv import load_dotenv
-from Const import help_menu,commands_usages
+from const import help_menu,commands_usages
 from commands.trackinsta.tracktnsta import TrackInsta
 import os
 import logging
+from commands.admin.admin import Alljobs,Loadalljobs
 import coloredlogs
 
 
@@ -16,11 +17,12 @@ load_dotenv()
 coloredlogs.install(level='INFO', fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
 
 
-class Bot():
+class Main():
 
     _TOKEN:Final = os.getenv("BOT_TOKEN")
     _BOT_USERNAME:Final = os.getenv("BOT_USERNAME")
     _USER_ID:Final = int(os.getenv("USER_ID"))
+    _ADMIN_USER = [int(os.getenv("USER_ID"))]
 
     def __init__(self) -> None:
         self.wiki=wikipediaapi.Wikipedia('Ada lovelace')
@@ -42,6 +44,13 @@ class Bot():
 
     async def custom_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
         await update.effective_message.reply_text(update.message.chat_id)
+
+    async def loadJobs_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
+        await Loadalljobs(update,context).run()
+
+
+    async def alljobs_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
+        await Alljobs(update,context).run()
 
     async def trackinsta_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
 
@@ -114,15 +123,16 @@ class Bot():
 
 if __name__ == "__main__":
     logging.info("Starting the bot...")
-    bot = Bot()
+    bot = Main()
     App = Application.builder().token(bot._TOKEN).build()
-    # App.job_queue.start()
 
     # commands
     
     App.add_handler(CommandHandler('start',bot.start_command))
     App.add_handler(CommandHandler('help',bot.help_command))
     App.add_handler(CommandHandler('custom',bot.custom_command))
+    App.add_handler(CommandHandler('LOADJOBS',bot.loadJobs_command))
+    App.add_handler(CommandHandler('ALLJOBS',bot.alljobs_command))
     # updater command
     App.add_handler(CommandHandler('wiki',bot.wikipedia_command,has_args=True,))
     App.add_handler(CommandHandler('trackinsta',bot.trackinsta_command,has_args=True))

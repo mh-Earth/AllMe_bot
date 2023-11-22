@@ -2,7 +2,7 @@
 import instaloader
 from dotenv import load_dotenv
 import logging
-# import os
+import os
 load_dotenv()
 
 '''
@@ -14,7 +14,6 @@ class Insta():
     def __init__(self,username:str) -> None:
         self.L = instaloader.Instaloader()
         self.username = username
-        # self.L.login(os.getenv("INSTA_USERNAME"),os.getenv("INSTA_PASS"))
 
         
 
@@ -39,6 +38,7 @@ class Insta():
             # biography_mentions = self.profile.biography_mentions
 
             return {
+                "Username":self.username,
                 "Full name":full_name,
                 "Follower":follower,
                 "Followee":followee,
@@ -52,12 +52,23 @@ class Insta():
     
     def lookup(self):
         try:
-             instaloader.Profile.from_username(self.L.context,self.username)
-             return True
+            return True if instaloader.Profile.from_username(self.L.context,self.username) else False
         except Exception as e:
             logging.error(e)
-            return False
-            
+            try:
+                logging.warning(f"{e}. Trying to load session")
+                try:
+
+                    self.L.load_session_from_file(os.getenv("INSTA_USERNAME"),"session-emi_lyitachi")
+                except:
+                    logging.error("Failed to load session for instagram")
+                    return False
+                return True if instaloader.Profile.from_username(self.L.context,self.username) else False
+            except Exception as e:
+                logging.error(e)
+                return False
+
+                
 
         
     def test(self):
@@ -65,4 +76,4 @@ class Insta():
 
 if __name__ == "__main__":
     test = Insta("afnan.aksa")
-    print(test.publicData())
+    print(test.lookup())

@@ -1,5 +1,5 @@
 '''
-Command : /trackinsta <instagram username> < option (optional)>
+Command : /trackinsta <instagram username> <option (optional)>
 
 option:
     status:
@@ -7,6 +7,7 @@ option:
     history:
     trackinsta?:
     remove:
+    help?:
 
 '''
 
@@ -15,18 +16,29 @@ from  CommandMaker.Base import CommandModel
 from telegram.ext import ContextTypes
 from telegram import Update
 from .api import Insta
-import logging
-
+from const import trackInsta_help_message
 class TrackInsta(CommandModel):
     def __init__(self,update:Update,cxt:ContextTypes.DEFAULT_TYPE) -> None:
         self.update:Update = update
         self.cxt:ContextTypes.DEFAULT_TYPE = cxt
         self.command = update.message.text.split(" ")[0][1:]
+        self.valid_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._"
         self.args = self.cxt.args
         self.username = self.args[0]
+        # required username
+        self.status_option = 'option'
+        self.remove_option = 'remove'
+        self.initial_option = 'initial'
+        self.history_option = 'history'
+        # no username required
+        self.help_option = 'help?'
+        self.tracking_list_option = 'trackinsta?'
+        self.special_names = [self.help_option,self.tracking_list_option]
+        # ////////////////////////////
+        # required for job base class
         self.name = self.username
-        self.fileName = self.name
-        self.valid_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._"
+        # required for helper base class
+        self.fileName = self.username
         super().__init__()
 
     def _validUserName(self) -> bool:
@@ -71,7 +83,7 @@ class TrackInsta(CommandModel):
         """
         title:str = f"Public activity detected for {self.username}"
         des = ""
-        for attr in data:
+        for attr in data: 
             # eg:follower:99->100
             des += f"{attr[0]}:{attr[1]} -> {attr[2]},\n"
         message = f"{title}\n{des}"
@@ -79,14 +91,17 @@ class TrackInsta(CommandModel):
     
     def _tracking_list_message(self) -> str:
         '''
-        Active Trackers..
+        Active Trackers
         1. tracker 1
         2. tracker 2
         3. tracker 3
         Total:3
         '''
         all_tracker = self._getAllJobs()
-        msg = f"Active trackers for..\n"
+        if len(all_tracker) == 0:
+            return "You have no active tracker"
+        
+        msg = f"Active trackers\n"
         for index,jobs in enumerate(all_tracker):
             msg += f"{index+1}. {jobs.chat_id.split('_')[1]}\n"
         msg += f"Total:{len(all_tracker)}"
@@ -96,25 +111,30 @@ class TrackInsta(CommandModel):
     def _history_message(self,data:dict):
         ...
     
+    def _help_message(self):
+        return trackInsta_help_message
 
     async def run(self):
 
 
-        '''special methods'''
-        '''if only special method given as username'''
-        '''Get all tracking'''
-        if len(self.args) == 1:
-            if self.username == "trackinsta?":
+        '''
+        username required : options (remove,initial,history,status,debug)
+        no username required : options (help?,trackinsta?)
+
+        only get the first parameter after username skip others 
+        '''
+        if self.username in self.special_names:
+
+            if self.username == self.help_option:
+                await self.update.effective_message.reply_text(self._help_message(),parse_mode='MarkdownV2')
+                return
+            elif self.username == self.tracking_list_option:
                 msg = self._tracking_list_message()
                 await self.update.effective_message.reply_text(msg)
                 return
-
-        '''
-        options (remove,_initial,history,status,debug)
-        only get the first parameter after username skip others 
-        '''
-        '''if any option given'''
-        if len(self.args) > 1:
+            
+        # '''if any option given'''
+        elif len(self.args) > 1:
             option:str = self.args[1].lower()
             '''options will only run if the user is in tracking'''
             if self._is_job_exits():
@@ -126,36 +146,36 @@ class TrackInsta(CommandModel):
                         self._removeFile()
                         return
                 # '''See the first store data'''
-                elif option == 'initial' :
+                elif option == self.initial_option :
                     await self.update.effective_message.reply_text(self._getInitials())
                     return
                 
                 # '''See all store data'''
-                elif option == 'history' :
+                elif option == self.history_option :
                     await self.update.effective_message.reply_text(self._getHistory())
                     return
                 
                 # '''See last store data'''
-                elif option == 'status' :
+                elif option == self.status_option :
                     await self.update.effective_message.reply_text(self._getStatus())
                     return
-                # '''Detail info on all tracking'''
 
+                # '''Detailed info on all tracking'''
+                elif option == 'debug' and self.username == self.tracking_list_option:
+                    data = self._getAllJobs()
+                    await self.update.effective_message.reply_text(str(data))
+                    return
+                
                 else:
                     await self.update.effective_message.reply_text("Invalid option!!!")
                     return
-                
-            elif option == 'debug' and self.username == "trackinsta?":
-                data = self._getAllJobs()
-                await self.update.effective_message.reply_text(str(data))
-                return
-            
+                    
             else:
                 await self.update.effective_message.reply_text("You are not tracking this user")
                 return
 
 
-        '''check for wrong username schema'''
+        '''check for invalid char in username'''
         if not self._validUserName():
             await self.update.effective_message.reply_text(f"Invalid username {self.username}") 
             return
@@ -172,7 +192,7 @@ class TrackInsta(CommandModel):
             return
         
         '''Id found'''
-        await self.update.effective_message.reply_text(f"Tracking Instagram id {self.username}") 
+        await self.update.effective_message.reply_text(f"Tracking user {self.username}") 
         # create initial files (if file not exist )
         self._createDataFile()
         '''Send the first result when start tracking'''
