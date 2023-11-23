@@ -29,6 +29,8 @@ Usage: `/trackinsta <username> <option>`
 \- `history`: Get the history of a tracker \(`/trackinsta tracker_name\[username\] history`\)
 \- `remove`: Remove a tracker \(`/trackinsta tracker_name\[username\] remove`\)
 \- `options`: Get available options \(/`/trackinsta options?`\)
+\- `checkout`: checkout a users live info \(/trackinsta <username> checkout\)
+\- `log`: Get activity history \(/trackinsta <username> checkout\)
 \- `trackinsta\?`: Get all active trackers \(`/trackinsta trackinsta\?`\)
 \- `help\?`: Get this menu \(`/trackinsta help\?`\)
 
@@ -40,6 +42,8 @@ trackinsta_option_list = '''
 \- `initial`: Get the initials of a tracker 
 \- `history`: Get the history of a tracker 
 \- `remove`: Remove a tracker 
+\- `checkout`: Checkout a users live info
+\- `log`: Get activity history
 \- `options`: Get this menu
 \- `trackinsta\?`: Get all active trackers 
 \- `help\?`: Get help menu

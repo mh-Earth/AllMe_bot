@@ -13,7 +13,7 @@ import coloredlogs
 load_dotenv()
 
 # logging.basicConfig(level=logging.DEBUG)
-coloredlogs.install(level='INFO', fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
+coloredlogs.install(level=os.getenv("LOGGING".upper()), fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
 
 
 class Main():

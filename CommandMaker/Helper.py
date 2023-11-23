@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 @dataclass
 class BaseHelper:
-    commandName:str
+    command:str
     fileName:str
 
 class BaseHelper:
@@ -62,7 +62,27 @@ class BaseHelper:
         if os.path.exists(path):
             return True
         return False
+    
+    def _create_change_log(self) -> list[tuple[str,tuple]]:
+        '''
+        Create a change log of changes overtime\n
+        Format:\n
+        [
+            (timestamp:str [(what_changes:str , to:str | int from:str | int)]),\n
+            (timestamp:str [(what_changes:str , to:str | int from:str | int)]),\n
+        ]\n
+        """\n
+        """
+        '''
+        all_stored_data = self._loadStoreData()
+        changes = []
+        keys = list(all_stored_data.keys())
 
+        for i in range(len(keys)-1):
+            change = self._get_diff_val(all_stored_data[keys[i]],all_stored_data[keys[i+1]])
+            changes.append((keys[i+1],change))
+
+        return changes
 
     @staticmethod
     def _compare_dicts(dict1, dict2):
@@ -116,3 +136,10 @@ class BaseHelper:
 
         # No changes detected
         return False
+
+
+# if __name__ == "__main__":
+    
+#     b = BaseHelper()
+#     data = b._create_change_log()
+#     print(data)

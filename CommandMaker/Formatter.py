@@ -8,7 +8,7 @@ class BaseFormatter():
         '''coming soon'''
         formatted_str = ""
         for key, value in data.items():
-            formatted_str += f"{key}:{value},\n"
+            formatted_str += f"{key}: {value}\n"
         return formatted_str
     
     
@@ -17,7 +17,7 @@ class BaseFormatter():
         try:
             data = loads(data)
             for key, value in data.items():
-                formatted_str += f"{key}:{value},\n"
+                formatted_str += f"{key}: {value},\n"
             return formatted_str
         except Exception as e:
             logging.error(e)
@@ -26,7 +26,7 @@ class BaseFormatter():
     def _to_str(self,data:any):
         return str(data)
     
-    def timestamp_to_readable_format(self,timestamp:int) -> str:
+    def _timestamp_to_readable_format(self,timestamp:float) -> str:
         """
         Converts a timestamp to a human-readable date and time format.
 
@@ -36,6 +36,7 @@ class BaseFormatter():
         Returns:
             str: A string representing the formatted date and time.
         """
-        return  datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        return  datetime.fromtimestamp(timestamp).strftime('%A %H:%M:%S %Y-%m-%d')
+
 
     

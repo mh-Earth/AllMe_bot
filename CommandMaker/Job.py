@@ -1,9 +1,10 @@
 
-from telegram.ext import ContextTypes
-import datetime
+from datetime import datetime,time
 import logging
-from dataclasses import dataclass
-
+from tzlocal import get_localzone
+import pytz
+from dotenv import load_dotenv
+from os import getenv
 # Job name = instratacking_username
 '''
 Base class for handling telegram job queue
@@ -29,6 +30,8 @@ Job schema:
 class JobController:
     def __init__(self) -> None:
         self.job_name = f"{self.command}_{self.name}"
+        self.local_timezone = get_localzone()
+        load_dotenv()
         
     
     def _remove_job_if_exists(self) -> bool:
@@ -43,10 +46,22 @@ class JobController:
     
     def _add_daily_job(self,callback):
         """Add a job to the queue that is run daily in a given time."""
-        time = datetime.time(12, 0, 0) # 12:00 pm
+        time_zone = get_localzone()
+        hour,minute,second = map(int,getenv("DAILY_JOB_TIME").split("_"))
+        desired_time = time(hour,minute,second)  # 12:00:00
+
+        # Set the desired time zone (replace 'America/New_York' with your desired time zone)
+        desired_timezone = pytz.timezone(str(time_zone))
+
+        # Get the current date
+        current_date = datetime.now()
+
+        # Combine the current date, desired time, and desired time zone
+        desired_datetime = datetime.combine(current_date, desired_time).replace(tzinfo=desired_timezone)
+
         # datetime.datetime.now()
-        logging.info(f'New daily job added time={time} command=/{self.command} {self.name}')
-        self.cxt.job_queue.run_daily(callback=callback, time=time, chat_id=self.job_name, name=self.command)
+        logging.info(f'New daily job added time={desired_datetime} time_zone={time_zone} command_used=/{self.command} {self.name}')
+        self.cxt.job_queue.run_daily(callback=callback, time=desired_datetime, chat_id=self.job_name, name=self.command)
     
     def _add_repeating_job(self,callback,interval:int):
         """Add a repeating job to the queue,run every (interval) seconds later."""
