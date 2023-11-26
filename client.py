@@ -5,17 +5,17 @@ from telethon.tl.types import InputPeerUser, InputPeerChannel
 from telethon import TelegramClient, sync, events
 from dotenv import load_dotenv
 import os
-
-
+from time import sleep
+from configurations.settings import NUMBER,API_ID,API_HASH
 load_dotenv()
 # get your api_id, api_hash, token
 # from telegram as described above
-api_id = os.getenv('API_ID')
-api_hash = os.getenv("API_HASH")
-message = "ItsAllMe_bot"
+api_id = API_ID
+api_hash = API_HASH
+message = "Host is running..."
 
 # your phone number
-phone = os.getenv('NUMBER')
+phone = NUMBER
 
 # creating a telegram session and assigning
 # it to a variable client
@@ -34,19 +34,20 @@ if not client.is_user_authorized():
 	# signing in the client
 	client.sign_in(phone, input('Enter the code: '))
 
+while True:
+	try:
+		# receiver user_id and access_hash, use
+		# my user_id and access_hash for reference
+		receiver = InputPeerUser(6540965739, 0)
 
-try:
-	# receiver user_id and access_hash, use
-	# my user_id and access_hash for reference
-	receiver = InputPeerUser(6540965739, 0)
-
-	# sending message using telegram client
-	client.send_message(receiver, message, parse_mode='html')
-except Exception as e:
-	
-	# there may be many error coming in while like peer
-	# error, wrong access_hash, flood_error, etc
-	print(e);
+		# sending message using telegram client
+		client.send_message(receiver, message, parse_mode='html')
+	except Exception as e:
+		
+		# there may be many error coming in while like peer
+		# error, wrong access_hash, flood_error, etc
+		print(e);
+		client.disconnect()
+	sleep(60)
 
 # disconnecting the telegram session 
-client.disconnect()

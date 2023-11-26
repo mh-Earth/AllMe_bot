@@ -13,13 +13,15 @@ option:
 '''
 
 
-from  CommandMaker.Base import CommandModel
+from  modules.CommandMaker.Base import CommandModel
 from telegram.ext import ContextTypes,CallbackContext
 from telegram import Update
 from .api import Insta
 from const import trackInsta_help_message,trackinsta_option_list
-from os import getenv
+from configurations.settings import TRACKING_MODE,REPEAT_JOB_INTERVAL
 from typing import Final
+from .options import *
+
 class TrackInsta(CommandModel):
     def __init__(self,update:Update,cxt:ContextTypes.DEFAULT_TYPE) -> None:
         self.update:Update = update
@@ -30,18 +32,18 @@ class TrackInsta(CommandModel):
         self.command = update.message.text.split(" ")[0][1:]
         self.valid_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._"
         # required username
-        self.status_option:Final = 'status'
-        self.remove_option:Final = 'remove'
-        self.initial_option:Final = 'initial'
-        self.history_option:Final = 'history'
-        self.checkout_option:Final = 'checkout'
-        self.log_option:Final = 'log'
+        self.status_option:Final = STATUS
+        self.remove_option:Final = REMOVE
+        self.initial_option:Final = INITIAL
+        self.history_option:Final = HISTORY
+        self.checkout_option:Final = CHECKOUT
+        self.log_option:Final = LOG
         # no username required
-        self.help_option = 'help?'
-        self.tracking_list_option = 'trackinsta?'
-        self.option_list_option = 'options?'
+        self.help_option = HELP
+        self.tracking_list_option = ALL
+        self.option_list_option = OPTIONS
         # configs
-        self.TRACKING_MODE:Final = getenv('TRACKING_MODE')
+        self.TRACKING_MODE:Final = TRACKING_MODE
         # ////////////////////////////
         # required for job base class
         self.name = self.username
@@ -161,7 +163,7 @@ class TrackInsta(CommandModel):
         
         msg = f"Active trackers\n"
         for index,jobs in enumerate(all_tracker):
-            msg += f"{index+1}. {jobs.chat_id.split('_')[1]}\n"
+            msg += f"{index+1}. {jobs.name.split('_')[1]}\n"
         msg += f"Total:{len(all_tracker)}"
         return msg
         
@@ -207,11 +209,13 @@ class TrackInsta(CommandModel):
         '''
         title = "You are not tracking this user".upper() if not isTracking else ""
         info = "You are tracking this user".upper() if isTracking else ""
+        if data != None:
+            des:str = self._dict_to_str(data)
+            message = f"{title}\n\n{des}\n{info}"
+            return message
+        else:
+            return 'USER NOT FOUND'
 
-        des:str = self._dict_to_str(data)
-        message = f"{title}\n\n{des}\n{info}"
-
-        return message
     # option = log
     def _log_option_message(self):
         logs = self._getLogs()
@@ -292,9 +296,9 @@ class TrackInsta(CommandModel):
                     await self.update.effective_message.reply_text(self.status_message())
                     return
                 
-                # '''See live status of a user info'''
+                # '''See live status of a user info (tracker required)'''
                 elif option == self.checkout_option:
-                    await self.update.effective_message.reply_text(self._checkout_option_message(self.insta.publicData(),True))
+                    await self.update.effective_message.reply_text(self._checkout_option_message(self.insta.checkout(),True))
                     return
                 
                 # '''See change log of a user info'''
@@ -314,8 +318,7 @@ class TrackInsta(CommandModel):
                 return
             
             elif option == self.checkout_option and not self.username.endswith('?'):
-                # await self.update.effective_message.reply_text(self._checkout_option_message(self.insta.publicData(),False))
-                return
+                await self.update.effective_message.reply_text(self._checkout_option_message(self.insta.checkout(),False))
                 return
 
             else:
@@ -345,7 +348,7 @@ class TrackInsta(CommandModel):
         await self.update.effective_message.reply_text(self._initialStatus(self.insta.publicData()))
         '''store first time data'''
         if len(self._loadStoreData()) == 0:
-            self._storeNewData(data=self.insta.publicData())
+            self._storeNewData(data=self.insta.publicData())        
 
         '''Add user in job queue'''
         async def callback(cxt:CallbackContext):
@@ -372,7 +375,7 @@ class TrackInsta(CommandModel):
         if self.TRACKING_MODE.lower() == "daily":
             self._add_daily_job(callback)
         elif self.TRACKING_MODE.lower() == "repeat":
-            self._add_repeating_job(callback,interval=10800) # 3 hour
+            self._add_repeating_job(callback,interval=REPEAT_JOB_INTERVAL) # 3 hour
         else:
             self._add_daily_job(callback)
 

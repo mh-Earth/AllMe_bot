@@ -1,84 +1,60 @@
 from typing import Final
 from telegram import Update
-from telegram.ext import Application , CommandHandler,MessageHandler,filters,ContextTypes,CallbackContext,Job
-import wikipediaapi
-from dotenv import load_dotenv
+from telegram.ext import Application , CommandHandler,MessageHandler,filters,ContextTypes
 from const import help_menu,commands_usages
 from commands.trackinsta.tracktnsta import TrackInsta
-import os
+from commands.wiki.wiki import Wiki
 import logging
 import coloredlogs
-
-
-load_dotenv()
+from utils.decorators import admin_only,indev
+from configurations.settings import BOT_TOKEN,BOT_USERNAME,USER_ID,LOGGING_LEVEL
 
 # logging.basicConfig(level=logging.DEBUG)
-coloredlogs.install(level=os.getenv("LOGGING".upper()), fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
-
+coloredlogs.install(level=LOGGING_LEVEL.upper(), fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
+logging.getLogger('httpx').setLevel(logging.ERROR)
 
 class Main():
 
-    _TOKEN:Final = os.getenv("BOT_TOKEN")
-    _BOT_USERNAME:Final = os.getenv("BOT_USERNAME")
-    _USER_ID:Final = int(os.getenv("USER_ID"))
-    _ADMIN_USER = [int(os.getenv("USER_ID"))]
+    _TOKEN:Final = BOT_TOKEN
+    _BOT_USERNAME:Final = BOT_USERNAME
+    _USER_ID:Final = USER_ID
 
-    def __init__(self) -> None:
-        self.wiki=wikipediaapi.Wikipedia('Ada lovelace')
-        self.DataPath = "/data"
+    @staticmethod
+    @indev
+    async def start_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
+        logging.warning(f"User {context._user_id} started the bot")
+        await update.message.reply_text("Hello Sir...")
 
-
-    # Commands
-    async def start_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
-        if context._user_id == self._USER_ID:
-            logging.warning(f"User {context._user_id} started the bot")
-            await update.message.reply_text("Hello Sir...")
-        else:
-            logging.warning(f"User ID {context._user_id} tried to access the bot")
-            return
-
+    @indev
     async def help_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(help_menu)
 
-    async def custom_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
+    @staticmethod
+    @admin_only
+    async def custom_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
         await update.effective_message.reply_text(update.message.chat_id)
 
-    async def trackinsta_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
 
-        if context._user_id == self._USER_ID:
-            command = TrackInsta(update,context)
-            await command.run()
-        else:
-            logging.warning(f"User ID {context._user_id} tried to access the bot")
+    @staticmethod
+    @indev
+    async def trackinsta_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
+        command = TrackInsta(update,context)
+        await command.run()
 
-                
-                
-    async def wikipedia_command(self,update:Update,context:ContextTypes.DEFAULT_TYPE):
-        if context._user_id == self._USER_ID:
-            query:str = " ".join(context.args)
-            await update.effective_message.reply_text(f"Searching for {query}....")
 
-            try:
-                page = self.wiki.page(query)
-                if page.exists():
-                    result:str = page.summary[:2024] 
-                    await update.message.reply_text(f"According to wikipedia {result} \n For more:{page.fullurl}")
 
-                else:
-                    await update.effective_message.reply_text("Sorry I couldn't find any info on this topic on wikipedia")
-            
-
-            except Exception as e:
-                logging.error(e)
-                await update.effective_message.reply_text("Sorry I couldn't find any info on this topic on wikipedia")
-        
-        else:
-            logging.warning(f"User ID {context._user_id} tried to access the bot")
+    @staticmethod
+    async def wikipedia_command(update:Update,context:ContextTypes.DEFAULT_TYPE):
+        wiki = Wiki(update,context)
+        await wiki.run()
+    
 
 
 
     # response
-    def handel_response(self,text:str) -> str:
+
+    @staticmethod
+    def handel_response(text:str) -> str:
         processed:str = text.lower()
         # print(processed)
 
@@ -86,6 +62,7 @@ class Main():
             return commands_usages[processed]
         else:
             return "I do not understand what you wrote..."
+
 
     async def handel_message(self,update:Update , context:ContextTypes.DEFAULT_TYPE):
         message_type:str = update.message.chat.type
@@ -108,7 +85,9 @@ class Main():
 
 
 
-    async def error(self,update:Update,context:ContextTypes.DEFAULT_TYPE):
+    @staticmethod
+    async def error(update:Update,context:ContextTypes.DEFAULT_TYPE):
+        await update.effective_message.reply_text(f"Update cause error {context.error}")
         logging.error(f"Update cause error {context.error}")
         logging.debug(f"Update {update} cause error {context.error}")
 

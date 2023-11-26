@@ -1,5 +1,5 @@
 from typing import Final
-
+from commands.trackinsta.options import *
 
 response_key:Final = {
     "/wiki":"/wiki <your search>",
@@ -18,35 +18,35 @@ commands_usages:Final = {
     '/trackinsta':"Use `/trackinsta help?` to see manual"
 }
 
-trackInsta_help_message = '''
+trackInsta_help_message = f'''
 **Add a tracker to an Instagram private ID**
 
 Usage: `/trackinsta <username> <option>`
 
 **Options:**
-\- `status`: Get the status of a tracker \(`/trackinsta tracker_name\[username\] status`\)
-\- `initial`: Get the initials of a tracker \(`/trackinsta tracker_name\[username\] initial`\)
-\- `history`: Get the history of a tracker \(`/trackinsta tracker_name\[username\] history`\)
-\- `remove`: Remove a tracker \(`/trackinsta tracker_name\[username\] remove`\)
-\- `options`: Get available options \(/`/trackinsta options?`\)
-\- `checkout`: checkout a users live info \(/trackinsta <username> checkout\)
-\- `log`: Get activity history \(/trackinsta <username> checkout\)
-\- `trackinsta\?`: Get all active trackers \(`/trackinsta trackinsta\?`\)
-\- `help\?`: Get this menu \(`/trackinsta help\?`\)
+\- `{STATUS}`: Get the status of a tracker \(`/trackinsta tracker_name\[username\] status`\)
+\- `{INITIAL}`: Get the initials of a tracker \(`/trackinsta tracker_name\[username\] initial`\)
+\- `{HISTORY}`: Get the history of a tracker \(`/trackinsta tracker_name\[username\] history`\)
+\- `{REMOVE}`: Remove a tracker \(`/trackinsta tracker_name\[username\] remove`\)
+\- `{OPTIONS}`: Get available options \(/`/trackinsta options?`\)
+\- `{CHECKOUT}`: checkout a users live info \(/trackinsta \<username\> checkout\)
+\- `{LOG}`: Get activity history \(/trackinsta \<username\> checkout\)
+\- `{ALL}`: Get all active trackers \(`/trackinsta trackinsta\?`\)
+\- `{HELP}`: Get this menu \(`/trackinsta help\?`\)
 
 '''
-trackinsta_option_list = '''
+trackinsta_option_list = F'''
 **Available options for trackinsta command**
 
-\- `status`: Get the status of a tracker 
-\- `initial`: Get the initials of a tracker 
-\- `history`: Get the history of a tracker 
-\- `remove`: Remove a tracker 
-\- `checkout`: Checkout a users live info
-\- `log`: Get activity history
-\- `options`: Get this menu
-\- `trackinsta\?`: Get all active trackers 
-\- `help\?`: Get help menu
+\- `{STATUS}`: Get the status of a tracker 
+\- `{INITIAL}`: Get the initials of a tracker 
+\- `{HISTORY}`: Get the history of a tracker 
+\- `{REMOVE}`: Remove a tracker 
+\- `{CHECKOUT}`: Checkout a users live info
+\- `{LOG}`: Get activity history
+\- `{OPTIONS}`: Get this menu
+\- `{ALL}`: Get all active trackers 
+\- `{HELP}`: Get help menu
 
 Usage: `/trackinsta <username> <option>`
 
