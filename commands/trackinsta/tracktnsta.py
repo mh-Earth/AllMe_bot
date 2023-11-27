@@ -87,7 +87,6 @@ class TrackInsta(CommandModel):
         bio: ''
         '''
         data = self._getStatus()
-        print(data)
         title = f'Status of {self.username}\n\n'.upper()
         body = ""
         for d in data:
@@ -107,7 +106,6 @@ class TrackInsta(CommandModel):
         bio: ''
         '''
         data = self._getInitials()
-        print(data)
         # title = f'Initial of {self.username}\n'.upper()
         title = ''
         body = ""
