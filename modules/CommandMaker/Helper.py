@@ -63,7 +63,7 @@ class BaseHelper:
             return True
         return False
     
-    def _create_change_log(self) -> list[tuple[str,tuple]]:
+    def _create_change_log(self,data:dict[dict]=None) -> list[tuple[str,tuple]]:
         '''
         Create a change log of changes overtime\n
         Format:\n

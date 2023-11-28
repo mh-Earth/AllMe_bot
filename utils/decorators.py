@@ -37,3 +37,15 @@ def indev(func):
         return await func(update,context,*args,**kwargs)
     
     return wrapped
+
+# def auth(func):
+#     @wraps(func)
+#     async def wrapped(*args,**kwargs):
+#         headersList = {
+#         "Authorization": f"Bearer {DB_API_TOKEN}",
+#         }
+
+#         kwargs['headers'] = headersList
+#         return await func(*args,**kwargs)
+    
+#     return wrapped

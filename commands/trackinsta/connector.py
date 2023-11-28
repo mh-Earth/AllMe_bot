@@ -1,108 +1,8 @@
-
-import instaloader
-from dotenv import load_dotenv
-import logging
-import os
 import requests
 import json
 from dataclasses import dataclass
-from configurations.settings import INSTA_USERNAME
-load_dotenv()
-
-
-
-'''
-Class for interacting with instagram
-'''
-class Insta():
-    def __init__(self,username:str) -> None:
-        self.L = instaloader.Instaloader()
-        self.username = username
-
-    '''Same as getPublic data bt with profile picture'''
-    def checkout(self):
-        is_id_exits = self.lookup()
-        if is_id_exits:
-            self.profile = instaloader.Profile.from_username(self.L.context, self.username)
-            # full name
-            full_name = self.profile.full_name
-            # follower
-            follower = self.profile.followers
-            # followee
-            followee = self.profile.followees
-            # isPrivate
-            isPrivate = self.profile.is_private
-            # bio
-            bio = self.profile.biography
-            # DP
-            DP = self.profile.profile_pic_url
-            # biography_mentions = self.profile.biography_mentions
-            profile_url = f"https://www.instagram.com/{self.username}/"
-
-
-            return {
-                "Username":self.username,
-                "Full name":full_name,
-                "Follower":follower,
-                "Following":followee,
-                "Private":isPrivate,
-                "Bio":bio,
-                "DP":DP,
-                "URL": profile_url
-            }
-
-        else:
-            logging.info(f"'{self.username}' Not Found!!")
-            return 
-    
-    def publicData(self):
-        is_id_exits = self.lookup()
-        if is_id_exits:
-            self.profile = instaloader.Profile.from_username(self.L.context, self.username)
-            # full name
-            full_name = self.profile.full_name
-            # follower
-            follower = self.profile.followers
-            # followee
-            followee = self.profile.followees
-            # isPrivate
-            isPrivate = self.profile.is_private
-            # bio
-            bio = self.profile.biography
-
-            return {
-                "Username":self.username,
-                "Full name":full_name,
-                "Follower":follower,
-                "Following":followee,
-                "Private":isPrivate,
-                "Bio":bio,
-            }
-
-        else:
-            logging.info(f"'{self.username}' Not Found!!")
-            return 
-    
-    def lookup(self):
-        try:
-            return True if instaloader.Profile.from_username(self.L.context,self.username) else False
-        except Exception as e:
-            logging.error(e)
-            try:
-                logging.warning(f"{e}. Trying to load session")
-                try:
-
-                    self.L.load_session_from_file(INSTA_USERNAME,"session-emi_lyitachi")
-                except:
-                    logging.error("Failed to load session for instagram")
-                    return False
-                return True if instaloader.Profile.from_username(self.L.context,self.username) else False
-            except Exception as e:
-                logging.error(e)
-                return False
-
-'''CONNECTOR TO BACKEND'''
-
+from time import time
+# from configurations.settings import DB_API_TOKEN
 @dataclass
 class TrackinstaTypes:
     username:str
@@ -129,7 +29,7 @@ class TrackinstaTypes:
         ]
 
 
-class Connector:
+class BaseConnector:
 
     def __init__(self,command:str ,username:str) -> None:
         self.command = command
@@ -139,7 +39,7 @@ class Connector:
         self.logFiled = "logs"
         self.DB_API_TOKEN = '6e48cd3c19bda1817afad46c90f267d046bfc0e2c1c2895d829f9363c1518847ca381763848741bba5e21cc493c748e4ff5e92e29ced64c7c75f864f1111e2a1c3cb82851b1a49f2ef1476fa72135179345b6c7089d8cd4d3958c1eae8789e182cb6d5fcdfd8dceba59c3b9bc0f0efa8796fb34789704d7fdfbcd4772261e4ec'
     
-    def username_to_id(self) -> int:
+    def _username_to_id(self) -> int:
         url = f"{self.dbPath}?{self._filter_username(self.username)}"
         print(url)
         # http://localhost:1337/api/trackinstas?filters[username][$eq]=emi_lyitachi
@@ -150,7 +50,7 @@ class Connector:
         data = json.loads(res.text)
         return data['data'][0]['id']
     
-    def get_initial(self):
+    def _get_initial(self) -> dict:
         url = f"{self.dbPath}?{self._filter_username(self.username)}&{self._type_filter('initial')}"
         # http://localhost:1337/api/trackinstas?filters[username][$eq]=emi_lyitachi&populate[data][filters][type][$eq]=initial
         print(url)
@@ -159,7 +59,7 @@ class Connector:
         }
         res = requests.get(url,headers=headersList)
         data = json.loads(res.text)
-        initials = data['data'][0]['attributes'][self.logFiled]
+        initials = data['data'][0]['attributes'][self.logFiled][0]
 
         if len(initials) == 0:
             return {'error':'No initials found'}
@@ -183,7 +83,7 @@ class Connector:
         else:
             return initials
 
-    def get_last_data(self):
+    def _get_last_data(self) -> dict:
         url = f"{self.dbPath}?{self._filter_username(self.username)}&{self._populate(self.logFiled)}"
         # http://localhost:1337/api/trackinstas?filters[username][$eq]=emi_lyitachi&populate=data
         print(url)
@@ -195,7 +95,7 @@ class Connector:
         data = data['data'][0]['attributes']['logs'][-1]
 
         return data
-    def get_all(self) -> list[dict]:
+    def _get_all(self) -> list[dict]:
 
         url = f"{self.dbPath}?{self._filter_username(self.username)}&{self._populate(self.logFiled)}"
         # http://localhost:1337/api/trackinstas?filters[username][$eq]=emi_lyitachi&populate=data
@@ -243,13 +143,13 @@ class Connector:
         return res.status_code
     
     def update_tracker(self,data:TrackinstaTypes):
-        Id = self.username_to_id()
+        Id = self._username_to_id()
         url = f"{self.dbPath}/{Id}"
         # http://localhost:1337/api/trackinstas/:id
         username,full_name,bio,follower,following,isPrivate,dType,timestamp,dp = data.data()
         dType = 'continuous'
 
-        previous_data = self.get_all()
+        previous_data = self._get_all()
 
         previous_data.append({
             "username": username if username != None else None,
@@ -278,7 +178,7 @@ class Connector:
         return res.status_code
 
     def delete_tracker(self):
-        Id = self.username_to_id()
+        Id = self._username_to_id()
         headersList = {
         "Authorization": f"Bearer {self.DB_API_TOKEN}",
         }
@@ -294,4 +194,55 @@ class Connector:
     def _populate(self,filed:str="*"):
         return f'populate={filed}'
 
+
+
+
+# c = Connector("trackinsta","emi_lyitachi2")
+# data = TrackinstaTypes(username=c.username,follower=3,following=17,dType='continuous',timestamp=str(time()))
+# initial = c.get_initial()
+
+class Connector(BaseConnector):
+    def __init__(self, command: str, username: str) -> None:
+        super().__init__(command, username)
+
+    def format(self,data:dict):
+        username = data['username']
+        full_name = data['full_name']
+        follower =  data['followers']
+        following =  data['followings']
+        isPrivate = data['isPrivate']
+        bio = data['bio']
+        timestamp = data['timestamp']
+
+        # print(data[i]['timestamp'])
+        converted = {
+            timestamp : {
+                'Username' : username,
+                'Full name':full_name if full_name != None else "",
+                'Follower':follower,
+                'Following':following,
+                'isPrivate':isPrivate,
+                'bio':bio if bio != None else ''
+
+            }
+        }
+        return converted
+    
+    def getInitials(self) -> dict:
+        return self.format(self._get_initial())
+    
+    def getStatus(self) -> dict:
+        return self.format(self._get_last_data())
+    def getHistory(self) -> dict[dict]:
+        all_logs = self._get_all()
+        converted = {}
+        for logs in all_logs:
+            converted.update(self.format(logs))
+        return converted
+            
+        
+        # print(converted)
+            
+connec = Connector('trackinsta','emi_lyitachi2')
+print(connec.getHistory())
 

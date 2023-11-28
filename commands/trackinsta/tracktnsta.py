@@ -16,7 +16,7 @@ option:
 from  modules.CommandMaker.Base import CommandModel
 from telegram.ext import ContextTypes,CallbackContext
 from telegram import Update
-from .api import Insta
+from .api import Insta,Connector,TrackinstaTypes
 from const import trackInsta_help_message,trackinsta_option_list
 from configurations.settings import TRACKING_MODE,REPEAT_JOB_INTERVAL
 from typing import Final
@@ -31,6 +31,7 @@ class TrackInsta(CommandModel):
         self.insta = Insta(self.username) # object for interacting with instagram api
         self.command = update.message.text.split(" ")[0][1:]
         self.valid_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._"
+        self.api = Connector(command=self.command,username=self.username)
         # required username
         self.status_option:Final = STATUS
         self.remove_option:Final = REMOVE
@@ -66,7 +67,7 @@ class TrackInsta(CommandModel):
         initial = next(reversed(self._loadStoreData().items()))
         return {initial[0]:initial[1]}
     # get all
-    def _getHistory(self) -> dict:
+    def _getHistory(self) -> dict[dict]:
         return self._loadStoreData()
     
     def _getLogs(self) -> list[tuple[str, tuple]]:
@@ -106,7 +107,7 @@ class TrackInsta(CommandModel):
         bio: ''
         '''
         data = self._getInitials()
-        # title = f'Initial of {self.username}\n'.upper()
+        print(data)
         title = ''
         body = ""
         for d in data:
