@@ -1,6 +1,6 @@
 import pyautogui as pg
 from typing import Final
-from ..configurations.settings import INSTA_USERNAME
+# from ..configurations.settings import INSTA_USERNAME
 
 STATUS:Final="status"
 INITIAL:Final="initial"
@@ -20,7 +20,7 @@ options = [
 
 login_req = ["",STATUS,INITIAL,HISTORY,LOG,CHECKOUT,REMOVE,CHECKOUT]
 not_login_req = [HELP,OPTIONS,ALL]
-test_user = INSTA_USERNAME
+test_user = 'emi_lyitachi'
 command = "/trackinsta"
 
 from time import sleep

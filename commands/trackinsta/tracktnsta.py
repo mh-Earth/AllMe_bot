@@ -5,8 +5,10 @@ option:
     status:
     initial:
     history:
-    trackinsta?:
     remove:
+    log:
+    all?:
+    checkout:?
     options?:
     help?:
 
@@ -58,20 +60,8 @@ class TrackInsta(CommandModel):
                 return False
         return True
     
-    # get the first one
-    def _getInitials(self) -> dict:
-        initial = next(iter(self._loadStoreData().items()))
-        return {initial[0]:initial[1]}
-    # get the last one
-    def _getStatus(self) -> dict:
-        initial = next(reversed(self._loadStoreData().items()))
-        return {initial[0]:initial[1]}
-    # get all
-    def _getHistory(self) -> dict[dict]:
-        return self._loadStoreData()
-    
     def _getLogs(self) -> list[tuple[str, tuple]]:
-        return self._create_change_log()
+        return self._create_change_log(data=self.api.getPreviousData())
 
     def _remove(self):
         return self._cancel_job()
@@ -87,7 +77,7 @@ class TrackInsta(CommandModel):
         isPrivate: False
         bio: ''
         '''
-        data = self._getStatus()
+        data = self.api.getStatus()
         title = f'Status of {self.username}\n\n'.upper()
         body = ""
         for d in data:
@@ -106,7 +96,7 @@ class TrackInsta(CommandModel):
         isPrivate: False
         bio: ''
         '''
-        data = self._getInitials()
+        data = self.api.getInitials()
         print(data)
         title = ''
         body = ""
@@ -127,7 +117,7 @@ class TrackInsta(CommandModel):
             '''
         """
         title:str = f"Initials of {self.username}\n".upper()
-        des:str = self._dict_to_str(data)
+        des:str = self._initialFormat(data)
         message = f"{title}\n{des}"
         return message
     
@@ -141,6 +131,7 @@ class TrackInsta(CommandModel):
         """
         title:str = f"Public activity detected for {self.username}"
         des = ""
+        print(f"Change Data:{data}")
         for attr in data: 
             # eg:follower:99->100
             des += f"{attr[0]}:{attr[1]} -> {attr[2]},\n"
@@ -180,7 +171,7 @@ class TrackInsta(CommandModel):
         -------------------
         -------------------
         '''
-        data = self._getHistory()
+        data = self.api.getHistory()
         if len(data) < 1:
             return "No history found!!"
         title = f"Tracking History of {self.username}\n\n".upper()
@@ -209,7 +200,7 @@ class TrackInsta(CommandModel):
         title = "You are not tracking this user".upper() if not isTracking else ""
         info = "You are tracking this user".upper() if isTracking else ""
         if data != None:
-            des:str = self._dict_to_str(data)
+            des:str = self._initialFormat(data)
             message = f"{title}\n\n{des}\n{info}"
             return message
         else:
@@ -218,7 +209,8 @@ class TrackInsta(CommandModel):
     # option = log
     def _log_option_message(self):
         logs = self._getLogs()
-        if len(logs) < 2:
+        print(logs)
+        if len(logs) == 0:
             return "Logs not available.No activity detected"
         title = f'change history of {self.username}\n\n'.upper()
         body = ""
@@ -277,8 +269,9 @@ class TrackInsta(CommandModel):
                 if option == "remove":
                     success = self._remove()
                     if success:
-                        await self.update.effective_message.reply_text("Tracker successfully cancelled!") 
+                        self.api.delete_tracker()
                         self._removeFile()
+                        await self.update.effective_message.reply_text("Tracker successfully cancelled!") 
                         return
                 # '''See the first store data'''
                 elif option == self.initial_option :
@@ -340,24 +333,31 @@ class TrackInsta(CommandModel):
             return
         
         '''Id found'''
-        await self.update.effective_message.reply_text(f"Tracking user {self.username}") 
-        # create initial files (if file not exist )
-        self._createDataFile()
+        '''Tracking user and sending its data to db'''
+        user_insta_data = self.insta.publicData(initial=True)
+        trackerObj = TrackinstaTypes(**user_insta_data)
         '''Send the first result when start tracking'''
-        await self.update.effective_message.reply_text(self._initialStatus(self.insta.publicData()))
-        '''store first time data'''
-        if len(self._loadStoreData()) == 0:
-            self._storeNewData(data=self.insta.publicData())        
+        send_data = self.api.add_tracker(data=trackerObj)
+        if  send_data.status_code == 200:
+            await self.update.effective_message.reply_text(f"Tracking user {self.username}") 
+            await self.update.effective_message.reply_text(self._initialStatus(user_insta_data))    
+            self._createDataFile() 
+        else:
+            await self.update.effective_message.reply_text(f"Failed to add track for {self.username}") 
+            return
+
+        
 
         '''Add user in job queue'''
         async def callback(cxt:CallbackContext):
             ''' getting public instagram data for id (name, follower, followee,bio etc..)'''
             new_data = self.insta.publicData()
-            '''Loading previously stored data'''
-            storedData = self._loadStoreData()
+            '''Load previously stored data'''
+            storedData = self.api.last_stored_log()
             '''Verify whether any earlier data has been stored, and if so, compare it with the new data'''
             if len(storedData) > 0:
-                _ , last_value = list(storedData.items())[-1]
+                _ , last_value = list(storedData.items())[0]
+                print(f'new data {new_data} ||||| last val {last_value}')
                 if self._is_diff(last_value,new_data):
                     '''Get different values'''
                     diff_val = self._get_diff_val(last_value,new_data)
@@ -365,7 +365,8 @@ class TrackInsta(CommandModel):
                 else:
                     return
             '''Append new data'''
-            self._storeNewData(data=new_data)
+            dataObject = TrackinstaTypes(**new_data)
+            self.api.add_log(data=dataObject)
             
         '''How often the job should run
            daily at given time or after a interval(s) later

@@ -8,25 +8,28 @@ class TrackinstaTypes:
     username:str
     follower:int
     following:int
-    dType:str
-    timestamp:str
+    dType:str=None
+    timestamp:str=None
     full_name:str=None
     bio:str=None
     isPrivate:bool=False
     dp:str=None
 
     def data(self):
-        return [
-            self.username,
-            self.full_name,
-            self.bio,
-            self.follower,
-            self.following,
-            self.isPrivate,
-            self.dType,
-            self.timestamp,
-            self.dp
-        ]
+        return {
+            'username':self.username,
+            'full_name':self.full_name,
+            'bio':self.bio,
+            'follower':self.follower,
+            'following':self.following,
+            'isPrivate':self.isPrivate,
+            'dType':self.dType,
+            'timestamp':self.timestamp,
+            'dp':self.dp
+        }
+
+'''CONNECTOR TO BACKEND'''
+
 
 
 class BaseConnector:
@@ -34,10 +37,14 @@ class BaseConnector:
     def __init__(self,command:str ,username:str) -> None:
         self.command = command
         self.username = username
-        self.dbPath = f"https://allme-bot-strapi.onrender.com/api/{self.command}s"
+        self.dbPath = f"http://localhost:1337/api/{self.command}s"
         self.idLocation = 'data[0].id'
         self.logFiled = "logs"
         self.DB_API_TOKEN = '6e48cd3c19bda1817afad46c90f267d046bfc0e2c1c2895d829f9363c1518847ca381763848741bba5e21cc493c748e4ff5e92e29ced64c7c75f864f1111e2a1c3cb82851b1a49f2ef1476fa72135179345b6c7089d8cd4d3958c1eae8789e182cb6d5fcdfd8dceba59c3b9bc0f0efa8796fb34789704d7fdfbcd4772261e4ec'
+    
+    @staticmethod
+    def _tick():
+        return str(time())
     
     def _username_to_id(self) -> int:
         url = f"{self.dbPath}?{self._filter_username(self.username)}"
@@ -112,8 +119,9 @@ class BaseConnector:
     # Add tracker
     def add_tracker(self,data:TrackinstaTypes) -> int:
         url = f"{self.dbPath}"
-        username,full_name,bio,follower,following,isPrivate,dType,timestamp,dp = data.data()
+        (username,full_name,bio,follower,following,isPrivate,dp) = data.data().values()
         dType = 'initial'
+        timestamp = self._tick()
         print(url)
         # http://localhost:1337/api/trackinstas
         payloads = {
@@ -142,11 +150,12 @@ class BaseConnector:
         res = requests.post(url,data=payloads,headers=headersList)
         return res.status_code
     
-    def update_tracker(self,data:TrackinstaTypes):
+    def add_log(self,data:TrackinstaTypes):
         Id = self._username_to_id()
         url = f"{self.dbPath}/{Id}"
         # http://localhost:1337/api/trackinstas/:id
-        username,full_name,bio,follower,following,isPrivate,dType,timestamp,dp = data.data()
+        (username,full_name,bio,follower,following,isPrivate,dp) = data.data().values()
+        timestamp = self._tick()
         dType = 'continuous'
 
         previous_data = self._get_all()
@@ -159,7 +168,7 @@ class BaseConnector:
             "followings": following if following != None else None,
             "isPrivate": isPrivate if isPrivate != None else None,
             "type": dType,
-            "timestamp":timestamp if timestamp != None else None,
+            "timestamp":timestamp,
             "dp": dp if dp != None else None
 
         })
@@ -239,10 +248,15 @@ class Connector(BaseConnector):
         for logs in all_logs:
             converted.update(self.format(logs))
         return converted
+    def getPreviousData(self) -> dict[dict]:
+        all_logs = self._get_all()
+        converted = {}
+        for logs in all_logs:
+            converted.update(self.format(logs))
+        return converted
             
         
-        # print(converted)
-            
-connec = Connector('trackinsta','emi_lyitachi2')
-print(connec.getHistory())
+        # print(converted)            
+connec = Connector('trackinsta','emi_lyitachi')
+print(connec._get_all())
 

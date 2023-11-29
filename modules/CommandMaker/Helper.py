@@ -63,7 +63,7 @@ class BaseHelper:
             return True
         return False
     
-    def _create_change_log(self,data:dict[dict]=None) -> list[tuple[str,tuple]]:
+    def _create_change_log(self,data:dict[dict]) -> list[tuple[str,tuple]]:
         '''
         Create a change log of changes overtime\n
         Format:\n
@@ -74,18 +74,19 @@ class BaseHelper:
         """\n
         """
         '''
-        all_stored_data = self._loadStoreData()
+        all_stored_data = data
         changes = []
         keys = list(all_stored_data.keys())
 
         for i in range(len(keys)-1):
             change = self._get_diff_val(all_stored_data[keys[i]],all_stored_data[keys[i+1]])
-            changes.append((keys[i+1],change))
+            if len(change) > 0:
+                changes.append((keys[i+1],change))
 
         return changes
 
     @staticmethod
-    def _compare_dicts(dict1, dict2):
+    def _compare_dicts(dict1:dict, dict2:dict):
         '''use to get difference between to dictionary'''
         # Find keys that are common to both dictionaries
         common_keys = set(dict1.keys()) & set(dict2.keys())
@@ -108,7 +109,7 @@ class BaseHelper:
         return differences
     
     @staticmethod
-    def _get_diff_val(dict1, dict2) -> bool:
+    def _get_diff_val(dict1:dict, dict2:dict) -> list[tuple]:
         '''same as compare_dicts '''
 
         # Find keys that are common to both dictionaries
@@ -122,7 +123,7 @@ class BaseHelper:
 
     
     @staticmethod
-    def _is_diff(dict1, dict2):
+    def _is_diff(dict1, dict2) -> bool:
         '''check if two dictionary are same or not'''
 
         # Check for changes in keys

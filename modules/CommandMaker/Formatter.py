@@ -4,12 +4,36 @@ from datetime import datetime
 
 class BaseFormatter():
 
-    def _dict_to_str(self,data:dict):
+    def _initialFormat(self,data:dict):
         '''coming soon'''
         formatted_str = ""
+        data = self._toUpper(data)
         for key, value in data.items():
             formatted_str += f"{key}: {value}\n"
         return formatted_str
+    
+    @staticmethod
+    def _toUpper(data:dict):
+        username = data['username']
+        full_name = data['full_name']
+        follower =  data['follower']
+        following =  data['following']
+        isPrivate = data['isPrivate']
+        bio = data['bio']
+        dp =  data['dp']
+
+        # print(data[i]['timestamp'])
+        converted = {
+            'Username' : username,
+            'Full name':full_name,
+            'Follower':follower,
+            'Following':following,
+            'isPrivate':isPrivate,
+            'Bio':bio if bio != None else '',
+            'Dp' if dp != None else None: dp
+
+        }
+        return converted
     
     
     def _str_to_str(self,data:str) -> str:

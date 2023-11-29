@@ -87,7 +87,7 @@ class Main():
 
     @staticmethod
     async def error(update:Update,context:ContextTypes.DEFAULT_TYPE):
-        await update.effective_message.reply_text(f"Update cause error {context.error}")
+        # await update.effective_message.reply_text(f"Update cause error {context.error}")
         logging.error(f"Update cause error {context.error}")
         logging.debug(f"Update {update} cause error {context.error}")
 
