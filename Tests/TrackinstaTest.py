@@ -18,9 +18,9 @@ options = [
     STATUS,INITIAL,HISTORY,CHECKOUT,LOG,OPTIONS,ALL,HELP,REMOVE
 ]
 
-login_req = ["",STATUS,INITIAL,HISTORY,LOG,CHECKOUT,REMOVE,CHECKOUT]
+login_req = ["",STATUS,INITIAL,HISTORY,LOG,CHECKOUT]
 not_login_req = [HELP,OPTIONS,ALL]
-test_user = 'emi_lyitachi'
+test_user = 'chilll.nights'
 command = "/trackinsta"
 
 from time import sleep

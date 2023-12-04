@@ -3,6 +3,7 @@ from configurations.settings import LIST_OF_ADMINS,LIST_OF_TEST_USER
 from telegram.ext import ContextTypes
 from telegram import Update
 import logging
+from configurations.settings import DB_API_TOKEN
 
 
 def admin_only(func):
@@ -38,14 +39,5 @@ def indev(func):
     
     return wrapped
 
-# def auth(func):
-#     @wraps(func)
-#     async def wrapped(*args,**kwargs):
-#         headersList = {
-#         "Authorization": f"Bearer {DB_API_TOKEN}",
-#         }
 
-#         kwargs['headers'] = headersList
-#         return await func(*args,**kwargs)
-    
-#     return wrapped
+
