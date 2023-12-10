@@ -1,6 +1,6 @@
 import pyautogui as pg
 from typing import Final
-from ..configurations.settings import INSTA_USERNAME
+# from ..configurations.settings import INSTA_USERNAME
 
 STATUS:Final="status"
 INITIAL:Final="initial"
@@ -18,9 +18,10 @@ options = [
     STATUS,INITIAL,HISTORY,CHECKOUT,LOG,OPTIONS,ALL,HELP,REMOVE
 ]
 
-login_req = ["",STATUS,INITIAL,HISTORY,LOG,CHECKOUT,REMOVE,CHECKOUT]
-not_login_req = [HELP,OPTIONS,ALL]
-test_user = INSTA_USERNAME
+login_req = ["",STATUS,INITIAL,LOG,CHECKOUT]
+not_login_req = [HELP,OPTIONS,ALL,CHECKOUT]
+hybrid_options = [CHECKOUT]
+test_user = 'chilll.nights'
 command = "/trackinsta"
 
 from time import sleep
@@ -43,12 +44,19 @@ def login_req_test():
         pg.press('enter')
         # sleep(1)
         
-
 def no_login_req_test():
     for options in not_login_req:
         pg.write(f"{command} {options}")
         pg.press('enter')
         # sleep(1)
+
+def hybrid_option():
+    for options in hybrid_options:
+        for i in range(2):
+            if i % 2 ==0:
+                pg.write(f"{command} {options}")
+                pg.press('enter')
+            # sleep(1)
 
 openTelegram()
 login_req_test()

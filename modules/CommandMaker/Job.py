@@ -14,7 +14,7 @@ Job schema:
 |------------------------------------------------|
 | ssn | name (command)     | chat id (job_name)  |
 |------------------------------------------------|
-|  1  | trackinsta_username| chat id             |
+|  1  | trackinsta=username| chat id             |
 |------------------------------------------------|
 |  2  | some_command_name  | chat id             |
 |------------------------------------------------|
@@ -30,7 +30,7 @@ Job schema:
 
 class JobController:
     def __init__(self) -> None:
-        self.job_name = f"{self.command}_{self.name}"
+        self.job_name = f"{self.command}={self.name}"
         self.local_timezone = get_localzone()
         
     
@@ -66,11 +66,11 @@ class JobController:
 
         self.cxt.job_queue.run_daily(callback=callback, time=desired_datetime, chat_id=self.cxt._chat_id, name=self.job_name)
     
-    def _add_repeating_job(self,callback,interval:int):
+    def _add_repeating_job(self,callback,interval:int,first:int|None=None):
         """Add a repeating job to the queue,run every (interval) seconds later."""
         # interval in second (run every interval second later)
         logging.info(f'New repeating job added interval={interval} command:/{self.command} {self.name}')
-        job = self.cxt.job_queue.run_repeating(callback=callback, interval=interval, chat_id=self.cxt._chat_id, name=self.job_name)
+        self.cxt.job_queue.run_repeating(callback=callback, interval=interval, chat_id=self.cxt._chat_id, name=self.job_name,first=first)
         # self.c
     
     def _cancel_job(self)-> bool:

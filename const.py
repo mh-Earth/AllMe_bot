@@ -21,32 +21,33 @@ commands_usages:Final = {
 trackInsta_help_message = f'''
 **Add a tracker to an Instagram private ID**
 
-Usage: `/trackinsta <username> <option>`
+Add tracker: `/trackinsta <instagram username>`
+Use options: `/trackinsta <instagram username> <option>`
 
-**Options:**
-\- `{STATUS}`: Get the status of a tracker \(`/trackinsta tracker_name\[username\] status`\)
-\- `{INITIAL}`: Get the initials of a tracker \(`/trackinsta tracker_name\[username\] initial`\)
-\- `{HISTORY}`: Get the history of a tracker \(`/trackinsta tracker_name\[username\] history`\)
-\- `{REMOVE}`: Remove a tracker \(`/trackinsta tracker_name\[username\] remove`\)
-\- `{OPTIONS}`: Get available options \(/`/trackinsta options?`\)
-\- `{CHECKOUT}`: checkout a users live info \(/trackinsta \<username\> checkout\)
-\- `{LOG}`: Get activity history \(/trackinsta \<username\> checkout\)
-\- `{ALL}`: Get all active trackers \(`/trackinsta trackinsta\?`\)
-\- `{HELP}`: Get this menu \(`/trackinsta help\?`\)
-
+Options:
+- `{STATUS}`: Get the status of a tracker 
+- `{INITIAL}`: Get the initials of a tracker
+- `{REMOVE}`: Remove a tracker 
+- `{OPTIONS}`: Get available options 
+- `{CHECKOUT}`: checkout a users live info
+- `{LOG}`: Get activity history
+- `{OPTIONS}`:Get all available options
+- `{ALL}`: Get all active trackers 
+- `{HELP}`: Get this menu
 '''
-trackinsta_option_list = F'''
-**Available options for trackinsta command**
+# - [Dp changed](https://example.com)
 
-\- `{STATUS}`: Get the status of a tracker 
-\- `{INITIAL}`: Get the initials of a tracker 
-\- `{HISTORY}`: Get the history of a tracker 
-\- `{REMOVE}`: Remove a tracker 
-\- `{CHECKOUT}`: Checkout a users live info
-\- `{LOG}`: Get activity history
-\- `{OPTIONS}`: Get this menu
-\- `{ALL}`: Get all active trackers 
-\- `{HELP}`: Get help menu
+trackinsta_option_list = F'''
+Available options for trackinsta command
+
+- `{STATUS}`: Get the status of a tracker 
+- `{INITIAL}`: Get the initials of a tracker 
+- `{REMOVE}`: Remove a tracker 
+- `{CHECKOUT}`: Checkout a users live info
+- `{LOG}`: Get activity history
+- `{OPTIONS}`: Get this menu
+- `{ALL}`: Get all active trackers 
+- `{HELP}`: Get help menu
 
 Usage: `/trackinsta <username> <option>`
 

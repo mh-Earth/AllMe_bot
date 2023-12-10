@@ -32,12 +32,18 @@ class Main():
     @staticmethod
     @admin_only
     async def custom_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
-        await update.effective_message.reply_text(update.message.chat_id)
+        from telegram.helpers import escape_markdown
+        text1 = escape_markdown('[google](https://instagram.fdac24-2.fna.fbcdn.net/v/t51.2885-19/404010028_1475697450008408_3453481303712123043_n.jpg?stp=dst-jpg_s320x320&_nc_ht=instagram.fdac24-2.fna.fbcdn.net&_nc_cat=108&_nc_ohc=8M-kaGgsTkUAX8Jw4K_&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AfD-gZTz96TQKSjEYkQ1CEWLgpIZZi3LJlQt6jBf2-ksXQ&oe=65728C76&_nc_sid=8b3546)',version=2,entity_type='pre')
+        text2 = escape_markdown(" -> code",version=2)
+        print(text1+text2)
+        final_text = text1+text2
+        await update.effective_message.reply_markdown_v2(final_text,disable_web_page_preview=True)
 
 
     @staticmethod
     @indev
     async def trackinsta_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
+        logging.info(f'[Running Command] {update.message.text}')
         command = TrackInsta(update,context)
         await command.run()
 
@@ -87,7 +93,7 @@ class Main():
 
     @staticmethod
     async def error(update:Update,context:ContextTypes.DEFAULT_TYPE):
-        await update.effective_message.reply_text(f"Update cause error {context.error}")
+        # await update.effective_message.reply_text(f"Update cause error {context.error}")
         logging.error(f"Update cause error {context.error}")
         logging.debug(f"Update {update} cause error {context.error}")
 
