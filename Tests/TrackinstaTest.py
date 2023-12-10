@@ -18,8 +18,9 @@ options = [
     STATUS,INITIAL,HISTORY,CHECKOUT,LOG,OPTIONS,ALL,HELP,REMOVE
 ]
 
-login_req = ["",STATUS,INITIAL,HISTORY,LOG,CHECKOUT]
-not_login_req = [HELP,OPTIONS,ALL]
+login_req = ["",STATUS,INITIAL,LOG,CHECKOUT]
+not_login_req = [HELP,OPTIONS,ALL,CHECKOUT]
+hybrid_options = [CHECKOUT]
 test_user = 'chilll.nights'
 command = "/trackinsta"
 
@@ -43,12 +44,19 @@ def login_req_test():
         pg.press('enter')
         # sleep(1)
         
-
 def no_login_req_test():
     for options in not_login_req:
         pg.write(f"{command} {options}")
         pg.press('enter')
         # sleep(1)
+
+def hybrid_option():
+    for options in hybrid_options:
+        for i in range(2):
+            if i % 2 ==0:
+                pg.write(f"{command} {options}")
+                pg.press('enter')
+            # sleep(1)
 
 openTelegram()
 login_req_test()

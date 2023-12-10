@@ -313,7 +313,7 @@ class ConnectorUtils(BaseConnector,Converter):
 
     
     def getStatus(self) -> dict:
-        return self.format(self._get_last_data(self.username))
+        return self.format(self._get_last_data(self.username,True))
     
     def getPreviousData(self) -> dict[dict]:
         all_logs = self._get_all(self.username)

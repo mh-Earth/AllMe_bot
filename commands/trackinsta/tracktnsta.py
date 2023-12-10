@@ -85,7 +85,8 @@ class TrackInsta(CommandModel):
     async def run(self):
         '''
         username required : options (remove,initial,status,debug)
-        no username required : options (help?,trackinsta?)
+        no username required : options (help?,all?,option?)
+        hybrid : checkout
 
         only get the first parameter after username skip others 
         '''
@@ -112,13 +113,16 @@ class TrackInsta(CommandModel):
             '''options will only run if the user is in tracking'''
             if self._is_job_exits():
                 '''Remove the tracker for given user (/trackinsta <username> remove)'''
-                if option == "remove":
+                if option == self.remove_option:
                     success = self._remove()
                     if success:
-                        self.api.remove_tracker()
-                        self._removeFile()
-                        await self.update.effective_message.reply_text("Tracker removed successful!") 
+                        remove_tracker = self.api.remove_tracker(identifier=self.username)
+                        if remove_tracker.status_code == 200:
+                            await self.update.effective_message.reply_text(f"Tracker removed from `{self.username}`") 
+                            return
+                        await self.update.effective_message.reply_text(f"Something went wrong.Failed to remove tracker for {self.username}") 
                         return
+
                 # '''See the first store data'''
                 elif option == self.initial_option :
                     await self.update.effective_message.reply_markdown_v2(self.formatter.initial(),disable_web_page_preview=True)
@@ -126,12 +130,12 @@ class TrackInsta(CommandModel):
                 
                 # '''See last store data'''
                 elif option == self.status_option :
-                    await self.update.effective_message.reply_text(self.formatter.status())
+                    await self.update.effective_message.reply_markdown_v2(self.formatter.status())
                     return
                 
                 # '''See live status of a user info (tracker required)'''
                 elif option == self.checkout_option:
-                    await self.update.effective_message.reply_text(self.formatter.checkout_option(self.insta.checkout(),True))
+                    await self.update.effective_message.reply_markdown_v2(self.formatter.checkout_option(self.insta.checkout(),True))
                     return
                 
                 # '''See change log of a user info'''

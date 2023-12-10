@@ -56,17 +56,16 @@ class TelegramMessageFormate(BaseFormatter):
         isPrivate: False
         bio: BIO
         '''
-        data = self.dbUtils.getStatus()
+        data = self._format(self.dbUtils.getStatus())
         title = self._escape_markdown(f'Status of {self.username}\n\n'.upper())
         body = ""
         for d in data:
-            for k,v in data[d].items():
-                if k == self.FormateKeys.dp and v == None:
-                    pass
-                elif k == self.FormateKeys.dp and v != None:
-                    body += f'{k}: Dp has changed\n'
-                else:
-                    body += f'{k}: {v}\n'
+            for values in d.values():
+                for k,v in values.items():
+                    if k == self.FormateKeys.dp:
+                        body += self._escape_markdown_pre(f'{k}: [Dp]({v})\n')
+                    else:
+                        body += self._escape_markdown(f'{k}: {v}\n')
 
                 
         msg = title + body
@@ -109,7 +108,6 @@ class TelegramMessageFormate(BaseFormatter):
         """
         title:str = self._escape_markdown(f"Public activity detected for {self.username}")
         des = ""
-        print(f"Change Data:{data}")
         for key,old,new in data:
             if key == self.FormateKeys.dp.lower():
                 if new != None:
@@ -123,7 +121,6 @@ class TelegramMessageFormate(BaseFormatter):
                 des += self._escape_markdown(f"{key}:{old} -> {new}\n")
         
         message = f"{title}\n{des}"
-        print(message)
         return message
     
     # option (username) = trackinsta?
@@ -175,13 +172,12 @@ class TelegramMessageFormate(BaseFormatter):
             des = ''
             for d in data:
                 for i in d.values():
-                    for k,v in i:
+                    for k,v in i.items():
                         if k == self.FormateKeys.dp:
-                            des += f'{k}: [DP]{(v)}'
+                            des += self._escape_markdown_pre(f'{k}: [DP]({v})\n')
                         else:
-                            des += f'{k}: {v}'
-
-            message = escape_markdown(f"{title}\n\n{des}\n{info}",version=2,entity_type='pre')
+                            des += self._escape_markdown(f'{k}: {v}\n')
+            message = f"{title}\n\n{des}\n{info}"
             return message
         else:
             return 'USER NOT FOUND'
@@ -211,9 +207,8 @@ class TelegramMessageFormate(BaseFormatter):
     # option = log
     def log_option(self):
         logs = self._create_change_log(self._format(self.dbUtils.getPreviousData()))
-        print(f"Log {logs}")
         if len(logs) < 1:
-            return self._escape_markdown("Logs not available.No activity detected")
+            return self._escape_markdown("Logs are not available.No activity detected")
         
         title = self._escape_markdown(f'change history of {self.username}\n\n'.upper())
         body = ""
@@ -225,14 +220,18 @@ class TelegramMessageFormate(BaseFormatter):
                         body += self._escape_markdown_pre(f"{change}: [From]({frm})")
                         body += self._escape_markdown(" -> ")
                         body += self._escape_markdown_pre(f"[To]({to})\n")
+                    else:
+                        body = body[:len(body)-len(self._escape_markdown(f'{activity[0]}\n'))]
                     
                 else:
                     body += self._escape_markdown(f"{change}: {frm} -> {to}\n")
 
             body += "\-"*30 + "\n" if index+1 != len(logs) else ""
-        msg = title + body
-
-        return msg
+            if body == "":
+                return self._escape_markdown("Logs are not available.No activity detected")
+            else:
+                msg = title + body
+                return msg
 
 
 

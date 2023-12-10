@@ -43,6 +43,7 @@ class Main():
     @staticmethod
     @indev
     async def trackinsta_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
+        logging.info(f'[Running Command] {update.message.text}')
         command = TrackInsta(update,context)
         await command.run()
 
