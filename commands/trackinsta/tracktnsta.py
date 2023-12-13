@@ -16,7 +16,7 @@ option:
 
 from modules.CommandMaker.Base import CommandModel
 from telegram.ext import ContextTypes,CallbackContext
-from telegram import Update
+from telegram import InputFile, Update
 from .insta import Insta
 from .api import Connector
 from .telegram_massage_formate import TelegramMessageFormate
@@ -24,6 +24,7 @@ from configurations.settings import TRACKING_MODE,REPEAT_JOB_INTERVAL
 from typing import Final
 from .options import *
 from utils.comparator import is_diff,get_diff_val
+from utils.helper import LocalStorage
 
 class TrackInsta(CommandModel):
     def __init__(self,update:Update,cxt:ContextTypes.DEFAULT_TYPE) -> None:
@@ -31,11 +32,13 @@ class TrackInsta(CommandModel):
         self.cxt:ContextTypes.DEFAULT_TYPE = cxt
         self.args = self.cxt.args
         self.username = self.args[0]
-        self.insta = Insta(self.username) # object for interacting with instagram api
-        self.command = update.message.text.split(" ")[0][1:]
-        self.valid_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._"
+        self.command = update.message.text.split(" ")[0][1:] # [1:] for removing the '/' from /command
         self.api = Connector()
+        self.insta = Insta(self.username) # object for interacting with instagram api
         self.formatter = TelegramMessageFormate(username=self.username)
+        self.localStorage = LocalStorage(self.command,self.username)
+
+        self.valid_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._"
         # required username
         self.status_option:Final = STATUS
         self.remove_option:Final = REMOVE
@@ -52,6 +55,7 @@ class TrackInsta(CommandModel):
         # ////////////////////////////
         # required for job base class
         self.name = self.username
+        # //////////////////////////
         super().__init__()
 
     def _validUserName(self) -> bool:
@@ -125,7 +129,7 @@ class TrackInsta(CommandModel):
 
                 # '''See the first store data'''
                 elif option == self.initial_option :
-                    await self.update.effective_message.reply_markdown_v2(self.formatter.initial(),disable_web_page_preview=True)
+                    await self.update.effective_message.reply_markdown_v2(self.formatter.initial())
                     return
                 
                 # '''See last store data'''
@@ -140,7 +144,19 @@ class TrackInsta(CommandModel):
                 
                 # '''See change log of a user info'''
                 elif option == self.log_option:
-                    await self.update.effective_message.reply_markdown_v2(self.formatter.log_option(),disable_web_page_preview=True)
+                    logs = self.formatter.log_option()
+                    if len(logs) > self.formatter.TELEGRAM_MAX_MESSAGE_LENGTH:
+                        from io import BytesIO
+                        # Create a BytesIO object to store the text content
+                        file_stream = BytesIO()
+                        # Write the text content to the BytesIO object
+                        file_stream.write(logs.replace("\\",'').encode('utf-8'))
+                        # Move the file cursor to the beginning of the BytesIO object
+                        file_stream.seek(0)
+                        # Send the BytesIO object as a document
+                        await self.cxt.bot.send_document(chat_id=self.cxt._chat_id, document=InputFile(file_stream, filename=f'{self.username}_logs.txt'))
+                        return
+                    await self.update.effective_message.reply_markdown_v2(logs,disable_web_page_preview=True)
                     return
                 
 
@@ -155,7 +171,7 @@ class TrackInsta(CommandModel):
                 return
             
             elif option == self.checkout_option and not self.username.endswith('?'):
-                await self.update.effective_message.reply_markdown_v2(self.formatter.checkout_option(self.insta.checkout(),False),disable_web_page_preview=True)
+                await self.update.effective_message.reply_markdown_v2(self.formatter.checkout_option(self.insta.checkout(),False))
                 return
 
             else:
@@ -183,8 +199,10 @@ class TrackInsta(CommandModel):
         '''Send the first result when start tracking'''
         send_data = self.api.add_tracker(data=user_insta_data)
         if  send_data.status_code == 200:
-            await self.update.effective_message.reply_markdown_v2(self.formatter.initial(data=self.formatter.extract_data_from_model(user_insta_data)))    
-            await self.update.effective_message.reply_text(f"Tracking user {self.username}") 
+            await self.update.effective_message.reply_text(f"Tracking user {self.username}")
+            await self.update.effective_message.reply_markdown_v2(self.formatter.initial(data=user_insta_data))
+            self.localStorage.createDataFile()
+            self.localStorage.storeNewData(self.localStorage.extra_data_from_model(user_insta_data))
         else:
             await self.update.effective_message.reply_text(f"Failed to add track for {self.username}") 
             return
@@ -207,6 +225,7 @@ class TrackInsta(CommandModel):
                 await self.update.effective_message.reply_markdown_v2(self.formatter.changeDetected(diff_val),disable_web_page_preview=True)
                 '''Append new data'''
                 self.api.add_log(data=new_data)
+                self.localStorage.storeNewData(self.localStorage.extra_data_from_model(new_data))
 
 
         '''How often the job should run

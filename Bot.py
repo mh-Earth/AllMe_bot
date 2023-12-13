@@ -7,7 +7,7 @@ from commands.wiki.wiki import Wiki
 import logging
 import coloredlogs
 from utils.decorators import admin_only,indev
-from configurations.settings import BOT_TOKEN,BOT_USERNAME,USER_ID,LOGGING_LEVEL
+from configurations.settings import BOT_TOKEN,BOT_USERNAME,USER_ID,LOGGING_LEVEL,DB_PATH
 
 # logging.basicConfig(level=logging.DEBUG)
 coloredlogs.install(level=LOGGING_LEVEL.upper(), fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
@@ -22,7 +22,7 @@ class Main():
     @staticmethod
     @indev
     async def start_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
-        logging.warning(f"User {context._user_id} started the bot")
+        logging.warning(f"User {update.effective_user.first_name} started the bot")
         await update.message.reply_text("Hello Sir...")
 
     @indev
@@ -32,31 +32,19 @@ class Main():
     @staticmethod
     @admin_only
     async def custom_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
-        from telegram.helpers import escape_markdown
-        text1 = escape_markdown('[google](https://instagram.fdac24-2.fna.fbcdn.net/v/t51.2885-19/404010028_1475697450008408_3453481303712123043_n.jpg?stp=dst-jpg_s320x320&_nc_ht=instagram.fdac24-2.fna.fbcdn.net&_nc_cat=108&_nc_ohc=8M-kaGgsTkUAX8Jw4K_&edm=AOQ1c0wBAAAA&ccb=7-5&oh=00_AfD-gZTz96TQKSjEYkQ1CEWLgpIZZi3LJlQt6jBf2-ksXQ&oe=65728C76&_nc_sid=8b3546)',version=2,entity_type='pre')
-        text2 = escape_markdown(" -> code",version=2)
-        print(text1+text2)
-        final_text = text1+text2
-        await update.effective_message.reply_markdown_v2(final_text,disable_web_page_preview=True)
-
+        await update.effective_message.reply_markdown_v2("Hello",disable_web_page_preview=True)
 
     @staticmethod
     @indev
     async def trackinsta_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
-        logging.info(f'[Running Command] {update.message.text}')
         command = TrackInsta(update,context)
         await command.run()
-
-
 
     @staticmethod
     async def wikipedia_command(update:Update,context:ContextTypes.DEFAULT_TYPE):
         wiki = Wiki(update,context)
         await wiki.run()
     
-
-
-
     # response
 
     @staticmethod
@@ -98,6 +86,7 @@ class Main():
         logging.debug(f"Update {update} cause error {context.error}")
 
 if __name__ == "__main__":
+    logging.debug(f"Connecting to DB: {DB_PATH}")
     logging.info("Starting the bot...")
     bot = Main()
     App = Application.builder().token(bot._TOKEN).build()

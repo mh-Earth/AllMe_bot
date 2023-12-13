@@ -1,7 +1,7 @@
 from datetime import datetime
 
 class BaseFormatter():
-    TELEGRAM_MAX_LENGTH = 4096
+    TELEGRAM_MAX_MESSAGE_LENGTH = 4096
     
     def _timestamp_to_readable_format(self,timestamp:float) -> str:
         """

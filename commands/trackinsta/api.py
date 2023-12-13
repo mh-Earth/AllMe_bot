@@ -1,11 +1,9 @@
-
-from dotenv import load_dotenv
 import logging
 import requests
 import json
 from configurations.settings import DB_API_TOKEN,DB_PATH
 from time import time
-from ..Types.trackinsta.types import TrackinstaDataModel
+from models.trackinsta.types import TrackinstaDataModel
 
 
 '''CONNECTOR TO BACKEND'''
@@ -39,7 +37,8 @@ class BaseConnector:
             return
         
         data = json.loads(res.text)
-        return data['data'][0]['id']
+        Id = data['data'][0]['id']
+        return Id
     
     def _get_last_found_dp(self,identifier:str|int) -> dict:
         url = f'{self.dbPath}?{self._filter_username(identifier)}&populate[logs][filters][dp][$null]&populate[logs][fields][0]=dp'
@@ -53,8 +52,6 @@ class BaseConnector:
             return
         data = json.loads(res.text)
         dp:list[dict] = data['data'][0]['attributes'][self.logFiled]
-        # print(f'Last Dp {dp[-1]}')
-        # print(f'Last Dp:{dp[-1]}')
         return dp[-1]
 
 
@@ -181,8 +178,8 @@ class BaseConnector:
             elif res.status_code == 400:
                 raise ValueError
             else:
-                logging.error(res.text)
-                return res
+                logging.error(f'[add_tracker] [code:{res.status_code}] {res.text}')
+                return
 
 
         except ValueError as e:

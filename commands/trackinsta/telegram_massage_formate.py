@@ -2,7 +2,7 @@ from modules.CommandMaker.Formatter import BaseFormatter
 from const import trackInsta_help_message,trackinsta_option_list
 from .api import ConnectorUtils
 from dataclasses import dataclass
-from ..Types.trackinsta.types import TrackinstaDataModel
+from models.trackinsta.types import TrackinstaDataModel
 from time import time
 from utils.comparator import get_diff_val
 from telegram.helpers import escape_markdown
@@ -72,7 +72,7 @@ class TelegramMessageFormate(BaseFormatter):
 
         return msg
     # option = initial
-    def initial(self,data:dict=None) -> str:
+    def initial(self,data:TrackinstaDataModel=None) -> str:
         '''
         INITIAL VALUE OF TRACKER
         full_name: USERNAME
@@ -84,7 +84,7 @@ class TelegramMessageFormate(BaseFormatter):
         if data == None:
             fData = self._format(self.dbUtils.getInitials())
         else:
-            fData = self._format(data)
+            fData = self._format(self.extract_data_from_model(data))
         title = ''
         body = ''
         for data in fData:
@@ -212,26 +212,34 @@ class TelegramMessageFormate(BaseFormatter):
         
         title = self._escape_markdown(f'change history of {self.username}\n\n'.upper())
         body = ""
+        self.previous_dp = None
         for index,activity in  enumerate(logs):
             body += self._escape_markdown(f'{activity[0]}\n')
+            has_add = False
             for change,frm,to in activity[1]:
                 if change == self.FormateKeys.dp:
+                    self.previous_dp = frm
                     if to != None:
-                        body += self._escape_markdown_pre(f"{change}: [From]({frm})")
-                        body += self._escape_markdown(" -> ")
-                        body += self._escape_markdown_pre(f"[To]({to})\n")
-                    else:
-                        body = body[:len(body)-len(self._escape_markdown(f'{activity[0]}\n'))]
+                        # body += self._escape_markdown_pre(f"{change}: [From]({frm})")
+                        # body += self._escape_markdown(" -> ")
+                        body += self._escape_markdown_pre(f"{change}: [Dp change]({to})\n")
+                        has_add = True
                     
                 else:
                     body += self._escape_markdown(f"{change}: {frm} -> {to}\n")
+                    has_add = True
 
-            body += "\-"*30 + "\n" if index+1 != len(logs) else ""
-            if body == "":
-                return self._escape_markdown("Logs are not available.No activity detected")
-            else:
-                msg = title + body
-                return msg
+            if not has_add:
+                body = body[:len(body)-len(self._escape_markdown(f'{activity[0]}\n'))]
+
+
+            body += "\-"*30 + "\n" if index+1 != len(logs) and has_add else ""
+
+        if body == "":
+            return self._escape_markdown("Logs are not available.No activity detected")
+        else:
+            msg = title + body
+            return msg
 
 
 

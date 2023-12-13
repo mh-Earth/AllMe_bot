@@ -35,7 +35,10 @@ def indev(func):
         if user_id not in LIST_OF_TEST_USER:
             logging.warning("User ID {} tried to use in-dev command `{}`".format(user_id,update.effective_message.text))
             return
-        return await func(update,context,*args,**kwargs)
+        else:
+            logging.info(f'[Running Command] ({update.message.text}) from {update.effective_user.username}')
+            return await func(update,context,*args,**kwargs)
+
     
     return wrapped
 
