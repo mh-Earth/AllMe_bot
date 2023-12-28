@@ -30,7 +30,7 @@ Job schema:
 
 class JobController:
     def __init__(self) -> None:
-        self.job_name = f"{self.command}={self.name}"
+        self.job_name = f"{self.cxt._user_id}&{self.name}"
         self.local_timezone = get_localzone()
         
     
@@ -77,10 +77,16 @@ class JobController:
         """Remove the job if the user changed their mind."""
         return self._remove_job_if_exists()
     
-    def _getAllJobs(self) -> tuple:
+    def _getAllJobs(self,user_id:int) -> tuple:
         '''Return all jobs by job name from job queue'''
-        return self.cxt.job_queue.jobs()
-        
+        if user_id == -1:
+            return self.cxt.job_queue.jobs()
+        else:
+            jobs = []
+            for job in self.cxt.job_queue.jobs():
+                if job.name.startswith(str(user_id)):
+                    jobs.append(job)
+            return jobs
         
     def _is_job_exits(self)->bool:
         '''check if a job (by name) is in job queue '''

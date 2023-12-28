@@ -32,12 +32,12 @@ class TrackInsta(CommandModel):
         self.cxt:ContextTypes.DEFAULT_TYPE = cxt
         self.args = self.cxt.args
         self.username = self.args[0]
+        self.user_id = self.cxt._user_id
         self.command = update.message.text.split(" ")[0][1:] # [1:] for removing the '/' from /command
-        self.api = Connector()
+        self.api = Connector(user_id=self.user_id,username=self.username)
         self.insta = Insta(self.username) # object for interacting with instagram api
-        self.formatter = TelegramMessageFormate(username=self.username)
+        self.formatter = TelegramMessageFormate(self.user_id, username=self.username)
         self.localStorage = LocalStorage(self.command,self.username)
-
         self.valid_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._"
         # required username
         self.status_option:Final = STATUS
@@ -75,13 +75,14 @@ class TrackInsta(CommandModel):
         3. tracker 3
         Total:3
         '''
-        all_tracker = self._getAllJobs()
+        all_tracker = self._getAllJobs(self.user_id)
+        
         if len(all_tracker) == 0:
             return "You have no active tracker"
         
         msg = f"Active trackers\n"
         for index,jobs in enumerate(all_tracker):
-            msg += f"{index+1}. {jobs.name.split('=')[1]}\n"
+            msg += f"{index+1}. {jobs.name.split('&')[1]}\n"
         msg += f"Total:{len(all_tracker)}"
         return msg
         
@@ -120,9 +121,11 @@ class TrackInsta(CommandModel):
                 if option == self.remove_option:
                     success = self._remove()
                     if success:
-                        remove_tracker = self.api.remove_tracker(identifier=self.username)
-                        if remove_tracker.status_code == 200:
+                        remove_tracker = self.api.remove_tracker(user_id=self.user_id,tracker_name=self.username)
+                        if remove_tracker.code == 200:
                             await self.update.effective_message.reply_text(f"Tracker removed from `{self.username}`") 
+                            await self.update.effective_message.reply_text(remove_tracker.text) 
+                            
                             return
                         await self.update.effective_message.reply_text(f"Something went wrong.Failed to remove tracker for {self.username}") 
                         return
@@ -166,7 +169,7 @@ class TrackInsta(CommandModel):
 
             # '''Detailed info on all tracking'''
             elif option == 'debug' and self.username == self.tracking_list_option:
-                data = self._getAllJobs()
+                data = self._getAllJobs(user_id=-1)
                 await self.update.effective_message.reply_text(str(data))
                 return
             
@@ -193,18 +196,24 @@ class TrackInsta(CommandModel):
             await self.update.effective_message.reply_text(f"Something went wrong.Check if user '{self.username}' exist") 
             return
         
+        # '''check limits for having tracker'''
+        # limit = self.api.tracker_limit(self.user_id)
+        # if limit.code != 200:
+        #     await self.update.effective_message.reply_text(limit.text) 
+        #     return
         '''Id found'''
         '''Tracking user and sending its data to db'''
         user_insta_data = self.insta.publicData()
         '''Send the first result when start tracking'''
-        send_data = self.api.add_tracker(data=user_insta_data)
-        if  send_data.status_code == 200:
+        send_data = self.api.add_new_tracker(self.update, data=user_insta_data)
+        if  send_data.code == 200:
             await self.update.effective_message.reply_text(f"Tracking user {self.username}")
             await self.update.effective_message.reply_markdown_v2(self.formatter.initial(data=user_insta_data))
             self.localStorage.createDataFile()
             self.localStorage.storeNewData(self.localStorage.extra_data_from_model(user_insta_data))
         else:
             await self.update.effective_message.reply_text(f"Failed to add track for {self.username}") 
+            await self.update.effective_message.reply_text(send_data.text) 
             return
 
         
@@ -215,7 +224,7 @@ class TrackInsta(CommandModel):
             new_data =  self.insta.publicData()
             extracted_new_data = [v for k,v in self.formatter.extract_data_from_model(new_data).items()][0]
             '''Load previously stored data'''
-            storedData = self.api.get_last_log(self.username,True)
+            storedData = self.api.get_last_log()
             last_value = [v for k,v in storedData.items()][0]
             '''Verify whether any earlier data has been stored, and if so, compare it with the new data'''
             # print(f'new data {extracted_new_data} ||||| last val {last_value}')
@@ -224,7 +233,7 @@ class TrackInsta(CommandModel):
                 diff_val = get_diff_val(last_value,extracted_new_data)
                 await self.update.effective_message.reply_markdown_v2(self.formatter.changeDetected(diff_val),disable_web_page_preview=True)
                 '''Append new data'''
-                self.api.add_log(data=new_data)
+                self.api.add_tracker_data(update=self.update,data=new_data)
                 self.localStorage.storeNewData(self.localStorage.extra_data_from_model(new_data))
 
 

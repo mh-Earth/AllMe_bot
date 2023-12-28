@@ -6,7 +6,7 @@ from commands.trackinsta.tracktnsta import TrackInsta
 from commands.wiki.wiki import Wiki
 import logging
 import coloredlogs
-from utils.decorators import admin_only,indev
+from utils.decorators import admin_only,indev,beta
 from configurations.settings import BOT_TOKEN,BOT_USERNAME,USER_ID,LOGGING_LEVEL,DB_PATH
 
 # logging.basicConfig(level=logging.DEBUG)
@@ -20,7 +20,7 @@ class Main():
     _USER_ID:Final = USER_ID
 
     @staticmethod
-    @indev
+    # @indev
     async def start_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
         logging.warning(f"User {update.effective_user.first_name} started the bot")
         await update.message.reply_text("Hello Sir...")
@@ -32,10 +32,10 @@ class Main():
     @staticmethod
     @admin_only
     async def custom_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
-        await update.effective_message.reply_markdown_v2("Hello",disable_web_page_preview=True)
+        await update.effective_message.reply_text(f'{context.chat_data}')
 
     @staticmethod
-    @indev
+    @beta
     async def trackinsta_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
         command = TrackInsta(update,context)
         await command.run()
@@ -79,11 +79,11 @@ class Main():
 
 
 
-    @staticmethod
-    async def error(update:Update,context:ContextTypes.DEFAULT_TYPE):
-        # await update.effective_message.reply_text(f"Update cause error {context.error}")
-        logging.error(f"Update cause error {context.error}")
-        logging.debug(f"Update {update} cause error {context.error}")
+    # @staticmethod
+    # async def error(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    #     # await update.effective_message.reply_text(f"Update cause error {context.error}")
+    #     logging.error(f"Update cause error {context.error}")
+    #     logging.debug(f"Update {update} cause error {context.error}")
 
 if __name__ == "__main__":
     logging.debug(f"Connecting to DB: {DB_PATH}")
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     App.add_handler(MessageHandler(filters.TEXT,bot.handel_message))
 
     # Error
-    App.add_error_handler(bot.error)
+    # App.add_error_handler(bot.error)
 
     # Polls the bot
     logging.info("Polling...")

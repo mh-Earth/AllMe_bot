@@ -4,7 +4,7 @@ import logging
 import requests
 from configurations.settings import INSTA_USERNAME
 from models.trackinsta.types import TrackinstaDataModel
-
+import uuid
 class Insta():
     def __init__(self,username:str) -> None:
         self.L = instaloader.Instaloader()
@@ -28,6 +28,9 @@ class Insta():
         self.L.context._session = session  # Set Instaloader's session to the custom session
 
 
+    def _gen_uid(self)->str:
+        return str(uuid.uuid4())
+    
     '''Same as getPublic data bt with profile picture'''
     def checkout(self) -> TrackinstaDataModel | None:
         is_id_exits = self.lookup()
@@ -50,6 +53,7 @@ class Insta():
 
 
             data = {
+                'uid':self._gen_uid(),
                 "username":self.username,
                 "full_name":full_name if full_name != '' else None,
                 "follower":follower,
@@ -82,6 +86,7 @@ class Insta():
             dp = self.profile.profile_pic_url
 
             data =  {
+                'uid':self._gen_uid(),
                 "username":self.username,
                 "full_name":full_name,
                 "follower":follower,
@@ -106,7 +111,7 @@ class Insta():
                 logging.warning(f"{e}. Trying to load session")
                 try:
 
-                    self.L.load_session_from_file(INSTA_USERNAME,"session-emi_lyitachi")
+                    self.L.load_session_from_file(INSTA_USERNAME,f"session-{INSTA_USERNAME}")
                 except:
                     logging.error("Failed to load session for instagram")
                     return False

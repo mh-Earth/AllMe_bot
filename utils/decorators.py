@@ -39,8 +39,17 @@ def indev(func):
             logging.info(f'[Running Command] ({update.message.text}) from {update.effective_user.username}')
             return await func(update,context,*args,**kwargs)
 
-    
     return wrapped
+
+def beta(func):
+    @wraps(func)
+    async def wrapped(update:Update,context:ContextTypes.DEFAULT_TYPE,*args,**kwargs):
+
+        logging.info(f'[Running Command] ({update.message.text}) from {update.effective_user.username} ({update.effective_user.first_name} {update.effective_user.last_name})')
+        return await func(update,context,*args,**kwargs)
+
+    return wrapped
+
 
 
 

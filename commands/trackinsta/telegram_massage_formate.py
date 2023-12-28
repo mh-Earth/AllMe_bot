@@ -19,9 +19,10 @@ class FuckIamSickOfNamingThinksFormat:
 
 '''Message Decorators'''
 class TelegramMessageFormate(BaseFormatter):
-    def __init__(self,username) -> None:
+    def __init__(self,user_id:int, username:str) -> None:
+        self.user_id = user_id
         self.username = username
-        self.dbUtils = ConnectorUtils(username)
+        self.dbUtils = ConnectorUtils(user_id, username)
         self.ini_list = ['Username','Full Name','Follower','Following','Private','Bio','Dp']
         self.FormateKeys = FuckIamSickOfNamingThinksFormat(*self.ini_list)
     
@@ -116,6 +117,9 @@ class TelegramMessageFormate(BaseFormatter):
                     des +=self._escape_markdown(" -> ")
                     des += self._escape_markdown_pre(f"[new]({new})")
                     des += '\n'
+            if key == self.FormateKeys.bio.lower():
+                if new != None:
+                    des += self._escape_markdown(f"{key}:{old} -> {new}\n")
             else:
                 # eg:follower:99->100
                 des += self._escape_markdown(f"{key}:{old} -> {new}\n")
