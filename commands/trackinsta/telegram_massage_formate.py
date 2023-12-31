@@ -1,10 +1,11 @@
+from pprint import pprint
 from modules.CommandMaker.Formatter import BaseFormatter
 from const import trackInsta_help_message,trackinsta_option_list
 from .api import ConnectorUtils
 from dataclasses import dataclass
 from models.trackinsta.types import TrackinstaDataModel
 from time import time
-from utils.comparator import get_diff_val
+from utils.comparator import get_diff_val,are_images_same
 from telegram.helpers import escape_markdown
 @dataclass
 class FuckIamSickOfNamingThinksFormat:
@@ -109,20 +110,31 @@ class TelegramMessageFormate(BaseFormatter):
         """
         title:str = self._escape_markdown(f"Public activity detected for {self.username}")
         des = ""
+        pprint(data)
         for key,old,new in data:
             if key == self.FormateKeys.dp.lower():
+                print(key +'--' * 20)
                 if new != None:
-                    des += f"{key} change:"
-                    des += self._escape_markdown_pre(f'[old]({old})')
-                    des +=self._escape_markdown(" -> ")
-                    des += self._escape_markdown_pre(f"[new]({new})")
-                    des += '\n'
+                    if not are_images_same(old,new):
+                        des += f"{key} change:"
+                        des += self._escape_markdown_pre(f'[old]({old})')
+                        des +=self._escape_markdown(" -> ")
+                        des += self._escape_markdown_pre(f"[new]({new})")
+                        des += '\n'
+                    else:    
+                        ...
+
             if key == self.FormateKeys.bio.lower():
+                print(key +'--' * 20)
                 if new != None:
                     des += self._escape_markdown(f"{key}:{old} -> {new}\n")
             else:
+                if key in ['dp','bio']:
+                    pass
+                else:
+                    des += self._escape_markdown(f"{key}:{old} -> {new}\n")
+                    
                 # eg:follower:99->100
-                des += self._escape_markdown(f"{key}:{old} -> {new}\n")
         
         message = f"{title}\n{des}"
         return message

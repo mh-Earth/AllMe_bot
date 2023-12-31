@@ -3,7 +3,6 @@ from configurations.settings import LIST_OF_ADMINS,LIST_OF_TEST_USER
 from telegram.ext import ContextTypes
 from telegram import Update
 import logging
-from configurations.settings import DB_API_TOKEN
 
 
 def admin_only(func):

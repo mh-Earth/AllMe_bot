@@ -7,7 +7,7 @@ from commands.wiki.wiki import Wiki
 import logging
 import coloredlogs
 from utils.decorators import admin_only,indev,beta
-from configurations.settings import BOT_TOKEN,BOT_USERNAME,USER_ID,LOGGING_LEVEL,DB_PATH
+from configurations.settings import BOT_USERNAME,USER_ID,LOGGING_LEVEL,BOT_TOKEN
 
 # logging.basicConfig(level=logging.DEBUG)
 coloredlogs.install(level=LOGGING_LEVEL.upper(), fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
@@ -86,7 +86,6 @@ class Main():
     #     logging.debug(f"Update {update} cause error {context.error}")
 
 if __name__ == "__main__":
-    logging.debug(f"Connecting to DB: {DB_PATH}")
     logging.info("Starting the bot...")
     bot = Main()
     App = Application.builder().token(bot._TOKEN).build()

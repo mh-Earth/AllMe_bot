@@ -6,7 +6,7 @@ from models.trackinsta.types import TrackinstaDataModel
 from db.Base import Base
 from db.standard_response import StandardResponse
 from telegram import Update
-
+from utils.comparator import are_images_same
 '''CONNECTOR TO BACKEND'''
 class BaseConnector:
 
@@ -201,17 +201,19 @@ class BaseConnector:
         if tracker.code == 200:
             # add data to data table
             '''Compare dps to check if dp as changed or not'''
-            last_found_dp = self._get_last_found_dp(user_id,username_aka_trackername)[1]
+            iD,last_found_dp = self._get_last_found_dp(user_id,username_aka_trackername)
             if data.dp == last_found_dp:
                 data.dp = None
             else:
-                data.dp = last_found_dp           
+                if are_images_same(last_found_dp,data.dp):
+                    self.connector.get_tracker_data_obj(iD).text.dp = None
+
+
+
             '''Compare bio's to check if bio as changed or not'''
             last_found_bio = self._get_last_found_bio(user_id,username_aka_trackername)[1]
             if data.bio == last_found_bio:
                 data.bio = None
-            else:
-                data.bio = last_found_bio           
                 
 
             add_data = self.connector.add_trackerData(data)

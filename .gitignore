@@ -5,3 +5,4 @@
 *json
 test.py
 session-emi_lyitachi
+db/persisting.py
