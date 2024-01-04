@@ -1,49 +1,26 @@
 from dataclasses import dataclass
-from models import Command,TrackinstaData,User,Trackers
 import uuid
-from connect import session
-# from models.trackinsta.types import TrackinstaDataModel
 from pprint import pprint
 import logging
-from standard_response import StandardResponse
 
-@dataclass(kw_only=True)
-class TrackinstaDataModel:
+try:
 
-    uid:str
-    username:str
-    follower:int
-    following:int
-    full_name:str|None =None
-    bio:str|None = None
-    isPrivate:bool=False
-    dp:str|None=None
-    timestamp:float|None=None
-    
-
-
-    def __call__(self) -> dict:
-         return {
-            'uid':self.uid,
-            'username':self.username,
-            'full_name':self.full_name,
-            'bio':self.bio,
-            'follower':self.follower,
-            'following':self.following,
-            'isPrivate':self.isPrivate,
-            'dp':self.dp
-        }
-
-    def __post_init__(self):
-        for (name, field_type) in self.__annotations__.items():
-            if not isinstance(self.__dict__[name], field_type):
-                current_type = type(self.__dict__[name])
-                raise TypeError(f"The field `{name}` was assigned by `{current_type}` instead of `{field_type}`")
+    from .connect import session
+    from .models import Command,TrackinstaData,User,Trackers
+    from .dataModels import TrackinstaDataModel
+    from .standard_response import StandardResponse
+except ImportError:
+    from connect import session
+    from models import Command,TrackinstaData,User,Trackers
+    from dataModels import TrackinstaDataModel
+    from standard_response import StandardResponse
 
 
 class Base:
     MAX_DATA_LIMIT = 100
-    MAX_TRACKER_LIMIT = 1
+    MAX_TRACKER_LIMIT = 3
+    NO_TRACKER_FOUND_BY_USERID_AND_NAME = 'No Tracker found with (user_id:{0}, tracker_name:{1})'
+
     def __init__(self) -> None:
         self.session = session
         pass
@@ -66,19 +43,21 @@ class Base:
         return to_dict
 
     def get_initial(self,user_id:int, tracker_name:str) -> StandardResponse:
+        logging.debug(f'Queuing tracker ({user_id},{tracker_name} for initial_ids)')
         # if tracker exits
         tracker = self.session.query(Trackers).filter_by(user_id=user_id).filter_by(tracker_name=tracker_name).first()
         if tracker:
             return StandardResponse.success(text=tracker.initial_data)
-        logging.error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
-        return StandardResponse.null_error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
+        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+        return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
 
     def get_continues(self,user_id:int, tracker_name:str) -> StandardResponse:
+        logging.debug(f'Queuing tracker ({user_id},{tracker_name} for continues_ids)')
         tracker = self.session.query(Trackers).filter_by(user_id=user_id).filter_by(tracker_name=tracker_name).first()
         if tracker:
             return StandardResponse.success(text=tracker.continues_data)
-        logging.error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
-        return StandardResponse.null_error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
+        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+        return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
 
         
     def add_tracker(self,tracker_name:str,initial_data:str,user_id:int=None) -> StandardResponse:
@@ -109,7 +88,7 @@ class Base:
         if tracker:
             return StandardResponse.success(tracker=tracker)
         else:
-            return StandardResponse.null_error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
+            return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
 
 
 
@@ -129,8 +108,8 @@ class Base:
             # step 5:Commit the change
             self.session.commit()
             return StandardResponse.success()
-        logging.error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
-        return StandardResponse.standard_error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
+        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+        return StandardResponse.standard_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
 
     def remove_continues(self,user_id,tracker_name,continues_data) -> StandardResponse:
         tracker = self.session.query(Trackers).filter_by(user_id=user_id).filter_by(tracker_name=tracker_name).first()
@@ -160,8 +139,8 @@ class Base:
             # step 3:Commit the change
             self.session.commit()
             return StandardResponse.success()
-        logging.error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
-        StandardResponse.null_error( f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
+        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+        StandardResponse.null_error( self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
 
     def add_trackerData(self,data_model:TrackinstaDataModel) -> StandardResponse:
 
@@ -176,7 +155,7 @@ class Base:
         except Exception as e:
             return StandardResponse.standard_error(e)
     
-    def remove_trackerData(self,uid):
+    def remove_trackerData(self,uid:str):
         
         try:
             data = self.session.query(TrackinstaData).filter_by(uid=uid).first()
@@ -189,6 +168,7 @@ class Base:
 
     
     def get_tracker_data(self,uid:str)-> StandardResponse:
+        logging.debug(f'Getting tracker data : {uid}')
         data = self.session.query(TrackinstaData).filter_by(uid=uid).first()
         if data:
             return StandardResponse.success(self._to_dict(data))
@@ -197,6 +177,7 @@ class Base:
 
     
     def get_tracker_data_obj(self,uid:str)-> StandardResponse:
+        logging.debug(f'Getting tracker data object : {uid}')
         data = self.session.query(TrackinstaData).filter_by(uid=uid).first()
         if data:
             return StandardResponse.success(data)
@@ -277,6 +258,7 @@ class Base:
                 tracker_name=TrackerData.username,
                 initial_data=TrackerData.uid,
                 continues_data=TrackerData.uid
+
             )
 
             user = User(
@@ -304,8 +286,8 @@ class Base:
             logging.info(f"Tracker {tracker} delete")
             return StandardResponse.success(f"Tracker {tracker} delete")
         else:
-            logging.error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
-            return StandardResponse.null_error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
+            logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+            return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
 
             
         ...
@@ -353,30 +335,6 @@ if __name__ == "__main__":
     data.username = 'me'
     print(data.username)
 
-
-
-    def remove_tracker(user_id,tracker_name):
-        # find the tracker
-        r_tracker = connector.find_tracker(user_id,tracker_name)
-        # connector.session.query(Trackers).filter_by(user_id=user_id).filter_by(tracker_name=tracker_name).first()
-        if r_tracker.code == 200:
-            # Get all continues
-            continues_ids = r_tracker.kwargs['tracker'].continues_data.split(',')
-            total_ids = len(continues_ids)
-            success = 0
-            # remove all continues id (or do I 😏)
-            for ids in continues_ids:
-                res = connector.remove_trackerData(ids)
-                if res.code == 200:
-                    success += 1
-
-            connector.remove_tracker(user_id,tracker_name)
-            return StandardResponse.success(text=f'Total {total_ids}, Success {success}, Failed {total_ids-success}')
-        
-        logging.error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
-        return StandardResponse.null_error(f'No Tracker found with (user_id:{user_id}, tracker_name:{tracker_name})')
-
     # print(connector.find_tracker(6969696969,'username').kwargs['tracker'].user_id)
         
-    pprint(remove_tracker(6969696969,'username').text)
 

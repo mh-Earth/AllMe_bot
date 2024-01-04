@@ -14,6 +14,7 @@ option:
 '''
 
 
+from pprint import pprint
 from modules.CommandMaker.Base import CommandModel
 from telegram.ext import ContextTypes,CallbackContext
 from telegram import InputFile, Update
@@ -23,8 +24,8 @@ from .telegram_massage_formate import TelegramMessageFormate
 from configurations.settings import TRACKING_MODE,REPEAT_JOB_INTERVAL
 from typing import Final
 from .options import *
+from .plot import ActivityPlot,FFPlot
 from utils.comparator import is_diff,get_diff_val
-from utils.helper import LocalStorage
 
 class TrackInsta(CommandModel):
     def __init__(self,update:Update,cxt:ContextTypes.DEFAULT_TYPE) -> None:
@@ -37,7 +38,7 @@ class TrackInsta(CommandModel):
         self.api = Connector(user_id=self.user_id,username=self.username)
         self.insta = Insta(self.username) # object for interacting with instagram api
         self.formatter = TelegramMessageFormate(self.user_id, username=self.username)
-        self.localStorage = LocalStorage(self.command,self.username)
+        # self.localStorage = LocalStorage(self.command,self.username)
         self.valid_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._"
         # required username
         self.status_option:Final = STATUS
@@ -45,6 +46,9 @@ class TrackInsta(CommandModel):
         self.initial_option:Final = INITIAL
         self.checkout_option:Final = CHECKOUT
         self.log_option:Final = LOG
+        self.history_option = HISTORY
+        self.plot_option = PLOT
+        self.activity_option = ACTIVITY
         # no username required
         self.help_option = HELP
         self.tracking_list_option = ALL
@@ -116,7 +120,7 @@ class TrackInsta(CommandModel):
         elif len(self.args) > 1:
             option:str = self.args[1].lower()
             '''options will only run if the user is in tracking'''
-            if self._is_job_exits():
+            if not self._is_job_exits():
                 '''Remove the tracker for given user (/trackinsta <username> remove)'''
                 if option == self.remove_option:
                     success = self._remove()
@@ -161,6 +165,54 @@ class TrackInsta(CommandModel):
                         return
                     await self.update.effective_message.reply_markdown_v2(logs,disable_web_page_preview=True)
                     return
+                # '''See change log of a user info'''
+                elif option == self.history_option:
+                    history = self.formatter.history_message()
+                    if len(history) > self.formatter.TELEGRAM_MAX_MESSAGE_LENGTH:
+                        from io import BytesIO
+                        # Create a BytesIO object to store the text content
+                        file_stream = BytesIO()
+                        # Write the text content to the BytesIO object
+                        file_stream.write(history.replace("\\",'').encode('utf-8'))
+                        # Move the file cursor to the beginning of the BytesIO object
+                        file_stream.seek(0)
+                        # Send the BytesIO object as a document
+                        await self.cxt.bot.send_document(chat_id=self.cxt._chat_id, document=InputFile(file_stream, filename=f'{self.username}_history.txt'))
+                        return
+                    
+                    await self.update.effective_message.reply_text(history,disable_web_page_preview=True)
+                    return
+                elif option == self.plot_option:
+                    try:
+                        what_to_plot = self.args[2].lower()
+                    except IndexError:
+                        what_to_plot = 'all'
+                    if what_to_plot.lower() == 'follower':
+                        plot = FFPlot(self.user_id,self.username).follower()
+                        await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(plot, filename='activity.png'))
+                        return 
+                    elif what_to_plot.lower() == 'following':
+                        plot = FFPlot(self.user_id,self.username).following()
+                        await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(plot, filename='activity.png'))
+                        return 
+                    elif what_to_plot.lower() == 'both':
+                        plot = FFPlot(self.user_id,self.username).both()
+                        await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(plot, filename='activity.png'))
+                        return 
+                    else:
+                        plot = FFPlot(self.user_id,self.username).plot()
+                        await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(plot, filename='activity.png'))
+                        return 
+                        
+
+
+
+                    ...
+                elif option == self.activity_option:
+                    activity = ActivityPlot(self.user_id,self.username).plot()
+                    await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(activity, filename='activity.png'))
+                    return
+                    ...
                 
 
                 else:
@@ -196,11 +248,11 @@ class TrackInsta(CommandModel):
             await self.update.effective_message.reply_text(f"Something went wrong.Check if user '{self.username}' exist") 
             return
         
-        # '''check limits for having tracker'''
-        # limit = self.api.tracker_limit(self.user_id)
-        # if limit.code != 200:
-        #     await self.update.effective_message.reply_text(limit.text) 
-        #     return
+        '''check limits for having tracker'''
+        limit = self.api.tracker_limit(self.user_id)
+        if limit.code != 200:
+            await self.update.effective_message.reply_text(limit.text) 
+            return
         '''Id found'''
         '''Tracking user and sending its data to db'''
         user_insta_data = self.insta.publicData()
@@ -209,8 +261,8 @@ class TrackInsta(CommandModel):
         if  send_data.code == 200:
             await self.update.effective_message.reply_text(f"Tracking user {self.username}")
             await self.update.effective_message.reply_markdown_v2(self.formatter.initial(data=user_insta_data))
-            self.localStorage.createDataFile()
-            self.localStorage.storeNewData(self.localStorage.extra_data_from_model(user_insta_data))
+            # self.localStorage.createDataFile()
+            # self.localStorage.storeNewData(self.localStorage.extra_data_from_model(user_insta_data))
         else:
             await self.update.effective_message.reply_text(f"Failed to add track for {self.username}") 
             await self.update.effective_message.reply_text(send_data.text) 
@@ -234,7 +286,7 @@ class TrackInsta(CommandModel):
                 await self.update.effective_message.reply_markdown_v2(self.formatter.changeDetected(diff_val),disable_web_page_preview=True)
                 '''Append new data'''
                 self.api.add_tracker_data(update=self.update,data=new_data)
-                self.localStorage.storeNewData(self.localStorage.extra_data_from_model(new_data))
+                # self.localStorage.storeNewData(self.localStorage.extra_data_from_model(new_data))
 
 
         '''How often the job should run

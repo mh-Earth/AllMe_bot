@@ -7,17 +7,16 @@ from commands.wiki.wiki import Wiki
 import logging
 import coloredlogs
 from utils.decorators import admin_only,indev,beta
-from configurations.settings import BOT_USERNAME,USER_ID,LOGGING_LEVEL,BOT_TOKEN
+from configurations.settings import BOT_USERNAME,LOGGING_LEVEL,BOT_TOKEN
 
 # logging.basicConfig(level=logging.DEBUG)
-coloredlogs.install(level=LOGGING_LEVEL.upper(), fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
+coloredlogs.install(level=LOGGING_LEVEL.upper(), fmt='%(asctime)s [%(funcName)s] [%(levelname)s]  %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
 logging.getLogger('httpx').setLevel(logging.ERROR)
+
 
 class Main():
 
     _TOKEN:Final = BOT_TOKEN
-    _BOT_USERNAME:Final = BOT_USERNAME
-    _USER_ID:Final = USER_ID
 
     @staticmethod
     # @indev
@@ -104,6 +103,7 @@ if __name__ == "__main__":
 
     # Error
     # App.add_error_handler(bot.error)
+
 
     # Polls the bot
     logging.info("Polling...")

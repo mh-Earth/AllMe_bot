@@ -3,7 +3,7 @@ import instaloader
 import logging
 import requests
 from configurations.settings import INSTA_USERNAME
-from models.trackinsta.types import TrackinstaDataModel
+from db.dataModels import TrackinstaDataModel
 import uuid
 class Insta():
     def __init__(self,username:str) -> None:
@@ -92,7 +92,7 @@ class Insta():
                 "follower":follower,
                 "following":followee,
                 "isPrivate":isPrivate,
-                "bio": bio,
+                "bio": bio if bio != "" else None,
                 'dp':dp
 
                 }

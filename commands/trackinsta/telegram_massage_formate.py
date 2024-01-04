@@ -1,12 +1,22 @@
 from pprint import pprint
+import logging
 from modules.CommandMaker.Formatter import BaseFormatter
 from const import trackInsta_help_message,trackinsta_option_list
 from .api import ConnectorUtils
 from dataclasses import dataclass
-from models.trackinsta.types import TrackinstaDataModel
+from db.dataModels import TrackinstaDataModel
 from time import time
 from utils.comparator import get_diff_val,are_images_same
 from telegram.helpers import escape_markdown
+from .messages import STATUS_OPTION_TITLE
+from .messages import INITIAL_OPTION_TITLE
+from .messages import CHANGE_DETECTED_MESSAGE
+from .messages import HISTORY_OPTION_TITLE
+from .messages import CHECKOUT_OPTION_INFO
+from .messages import CHECKOUT_OPTION_TITLE
+from .messages import LOG_OPTION_TITLE
+from .messages import NO_LOG_MESSAGE
+
 @dataclass
 class FuckIamSickOfNamingThinksFormat:
     username:str
@@ -32,9 +42,11 @@ class TelegramMessageFormate(BaseFormatter):
     
     @staticmethod
     def _escape_markdown_pre(text:str):
+        logging.debug('escaping markdown')
         return escape_markdown(text,version=2,entity_type='pre')
     @staticmethod
     def _escape_markdown(text:str):
+        logging.debug('escaping markdown')
         return escape_markdown(text,version=2)
 
     def _format(self,data:dict[str:dict]) -> list[dict[str,dict]]:
@@ -59,8 +71,9 @@ class TelegramMessageFormate(BaseFormatter):
         bio: BIO
         '''
         data = self._format(self.dbUtils.getStatus())
-        title = self._escape_markdown(f'Status of {self.username}\n\n'.upper())
+        title = self._escape_markdown(STATUS_OPTION_TITLE.format(self.username).upper())
         body = ""
+        logging.debug(f'Creating status message with data = {data}')
         for d in data:
             for values in d.values():
                 for k,v in values.items():
@@ -83,11 +96,12 @@ class TelegramMessageFormate(BaseFormatter):
         isPrivate: False
         bio: ''
         '''
+        logging.debug(f'Creating initial message with data = {data}')
         if data == None:
             fData = self._format(self.dbUtils.getInitials())
         else:
             fData = self._format(self.extract_data_from_model(data))
-        title = ''
+        title = INITIAL_OPTION_TITLE
         body = ''
         for data in fData:
             for d in data.values():
@@ -108,12 +122,12 @@ class TelegramMessageFormate(BaseFormatter):
             isPrivate:true -> false\n
             '''
         """
-        title:str = self._escape_markdown(f"Public activity detected for {self.username}")
+        title:str = self._escape_markdown(CHANGE_DETECTED_MESSAGE.format(self.username))
         des = ""
-        pprint(data)
+        logging.debug(f'Change detected. Formatting data. data = "{data}"')
         for key,old,new in data:
             if key == self.FormateKeys.dp.lower():
-                print(key +'--' * 20)
+                logging.debug(f'Change {key}')
                 if new != None:
                     if not are_images_same(old,new):
                         des += f"{key} change:"
@@ -125,10 +139,11 @@ class TelegramMessageFormate(BaseFormatter):
                         ...
 
             if key == self.FormateKeys.bio.lower():
-                print(key +'--' * 20)
+                logging.debug(f'Change {key}')
                 if new != None:
                     des += self._escape_markdown(f"{key}:{old} -> {new}\n")
             else:
+                logging.debug(f'Change {key}')
                 if key in ['dp','bio']:
                     pass
                 else:
@@ -137,6 +152,7 @@ class TelegramMessageFormate(BaseFormatter):
                 # eg:follower:99->100
         
         message = f"{title}\n{des}"
+        logging.debug(f"change message created.\n message ='{message}'")
         return message
     
     # option (username) = trackinsta?
@@ -156,10 +172,11 @@ class TelegramMessageFormate(BaseFormatter):
         -------------------
         -------------------
         '''
-        data = self.api.getHistory()
+        data = self.dbUtils.getPreviousData()
+        logging.debug(f'Creating history message from data = {data}')
         if len(data) < 1:
             return self._escape_markdown("No history found!!")
-        title = self._escape_markdown(f"Tracking History of {self.username}\n\n".upper())
+        title = self._escape_markdown(HISTORY_OPTION_TITLE.format(self.username).upper())
         body = ""
         for index,d in enumerate(data):
             time = self._timestamp_to_readable_format(float(d))
@@ -181,8 +198,8 @@ class TelegramMessageFormate(BaseFormatter):
         bio: BIO IF USER
         INFO:INFO
         '''
-        title = "You are not tracking this user".upper() if not isTracking else ""
-        info = "You are tracking this user".upper() if isTracking else ""
+        title = CHECKOUT_OPTION_TITLE.upper() if not isTracking else ""
+        info = CHECKOUT_OPTION_INFO.upper() if isTracking else ""
         if dataModel != None:
             data = self._format(self.extract_data_from_model(dataModel=dataModel))
             des = ''
@@ -200,7 +217,7 @@ class TelegramMessageFormate(BaseFormatter):
         
 
     @staticmethod
-    def _create_change_log(data:dict[dict]) -> list[tuple[str,tuple]]:
+    def _create_change_log(data:list[dict]) -> list[tuple[str,tuple]]:
         '''
         Create a change log of changes overtime\n
         Format:\n
@@ -211,22 +228,26 @@ class TelegramMessageFormate(BaseFormatter):
         """\n
         """
         '''
-        
+        logging.debug('Creating change log')
         keys = [k for d in data for k in d.keys()]
+        logging.debug(f'Change log keys: {keys}')
         changes = []
         for i in range(len(data)-1):
             change = get_diff_val(data[i].get(keys[i]),data[i+1].get(keys[i+1]))
             if len(change) > 0:
                 changes.append((keys[i+1],change))
+        logging.debug(f'Success.Change log = "{changes}"')
         return changes
     
     # option = log
     def log_option(self):
-        logs = self._create_change_log(self._format(self.dbUtils.getPreviousData()))
+        logging.debug('Creating logging message')
+        logs = self._create_change_log(self._format(self.dbUtils.getLogData()))
         if len(logs) < 1:
-            return self._escape_markdown("Logs are not available.No activity detected")
+            logging.debug(f'Log message length {len(logs)}')
+            return self._escape_markdown(NO_LOG_MESSAGE)
         
-        title = self._escape_markdown(f'change history of {self.username}\n\n'.upper())
+        title = self._escape_markdown(LOG_OPTION_TITLE.format(self.username).upper())
         body = ""
         self.previous_dp = None
         for index,activity in  enumerate(logs):
@@ -238,7 +259,7 @@ class TelegramMessageFormate(BaseFormatter):
                     if to != None:
                         # body += self._escape_markdown_pre(f"{change}: [From]({frm})")
                         # body += self._escape_markdown(" -> ")
-                        body += self._escape_markdown_pre(f"{change}: [Dp change]({to})\n")
+                        body += self._escape_markdown_pre(f"{change}: Dp change\n")
                         has_add = True
                     
                 else:
@@ -252,7 +273,7 @@ class TelegramMessageFormate(BaseFormatter):
             body += "\-"*30 + "\n" if index+1 != len(logs) and has_add else ""
 
         if body == "":
-            return self._escape_markdown("Logs are not available.No activity detected")
+            return self._escape_markdown(NO_LOG_MESSAGE)
         else:
             msg = title + body
             return msg

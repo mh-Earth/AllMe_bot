@@ -9,6 +9,8 @@ class StandardResponse:
     
     def __repr__(self) -> str:
         return f"<[Response code={self.code}, {self.kwargs}]>"
+    def __bool__(self):
+        return True if self.code == 200 else False
     
     @staticmethod
     def success(text='success',**kwargs):
@@ -31,4 +33,3 @@ class StandardResponse:
     @staticmethod
     def standard_info(text,**kwargs):
         return StandardResponse(200,text,**kwargs)
-

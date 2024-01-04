@@ -2,7 +2,7 @@ import os
 import json
 import time
 from dataclasses import dataclass
-from models.trackinsta.types import TrackinstaDataModel
+from db.types import TrackinstaDataModel
 '''Class for storing data to a local file storage (temporary)'''
 
 @dataclass

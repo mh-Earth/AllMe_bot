@@ -4,5 +4,6 @@
 /*/data/
 *json
 test.py
-session-emi_lyitachi
-db/persisting.py
+*.db
+db/view.py
+db/transfer.py

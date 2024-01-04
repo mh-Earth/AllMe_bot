@@ -94,7 +94,7 @@ class TrackinstaData(Base):
 
     # tracker:Mapped[str] = mapped_column(String,ForeignKey('trackinsta.tracker'))
 
-    def __init__(self,uid:str,username:str,follower:int,following:int,isPrivate:bool,full_name:str|None=None,bio:str|None=None,dp:str|None=None,**kw: Any):
+    def __init__(self,uid:str,username:str,follower:int,following:int,isPrivate:bool,full_name:str|None=None,bio:str|None=None,dp:str|None=None,timestamp:float=None,**kw: Any):
         super().__init__(**kw)
         self.uid = uid
         self.username = username
@@ -104,24 +104,4 @@ class TrackinstaData(Base):
         self.isPrivate = isPrivate
         self.bio = bio
         self.dp = dp
-
-# class Trackinsta(Base):
-#     __tablename__ = 'trackinsta'
-#     tracker:Mapped[str] = mapped_column(String,primary_key=True)
-#     # telegram_users:Mapped[str] = mapped_column(Text,nullable=False)
-#     create_at:Mapped[DateTime] = mapped_column(String,default=create_at)
-
-#     # data:Mapped[List[TrackinstaData]] = relationship(back_populates='data')
-
-
-#     # data:Mapped[List[TrackinstaUserData]] = relationship(back_populates='parent')
-
-#     def __init__(self,user_id:int,tracker:str,data:list[TrackinstaData],telegram_users:str, **kw: Any):
-#         super().__init__(**kw)
-#         self.user_id = user_id
-#         self.tracker = tracker
-#         self.data = data
-#         self.telegram_users = telegram_users
-
-
-create_at()
+        self.timestamp = timestamp
