@@ -31,6 +31,8 @@ Options:
 - `{OPTIONS}`: Get available options 
 - `{CHECKOUT}`: checkout a users live info
 - `{LOG}`: Get activity history
+- `{PLOT}`: Get follower following change graph
+- `{ACTIVITY}`: Get activity as graph
 - `{OPTIONS}`:Get all available options
 - `{ALL}`: Get all active trackers 
 - `{HELP}`: Get this menu
@@ -45,6 +47,8 @@ Available options for trackinsta command
 - `{REMOVE}`: Remove a tracker 
 - `{CHECKOUT}`: Checkout a users live info
 - `{LOG}`: Get activity history
+- `{PLOT}`: Get follower following change graph
+- `{ACTIVITY}`: Get activity as graph
 - `{OPTIONS}`: Get this menu
 - `{ALL}`: Get all active trackers 
 - `{HELP}`: Get help menu
