@@ -1,13 +1,11 @@
 import logging
-from pprint import pprint
 from time import time
 from db.dataModels import TrackinstaDataModel
 from db.Base import Base
 from db.standard_response import StandardResponse
 from telegram import Update
 from utils.comparator import are_images_same
-from .messages import ALL_READY_TRACKING_USER,SPECIAL_CRITICAL,USER_NAME_CHANGE,MAX_TRACKER_LIMIT_REACHED
-from utils.comparator import get_diff_val
+from .messages import SPECIAL_CRITICAL,USER_NAME_CHANGE,MAX_TRACKER_LIMIT_REACHED
 '''CONNECTOR TO BACKEND'''
 class BaseConnector:
 

@@ -230,13 +230,40 @@ class Base:
         return StandardResponse.success()
     
     def increase_active_trackers_count(self,user_id):
-        user = self.session.query(User).filter_by(user_id=user_id).first()
-        user.active_tracker += 1
-        self.session.commit()
+        try:
+            user = self.session.query(User).filter_by(user_id=user_id).first()
+            user.active_tracker += 1
+            self.session.commit()
+        except Exception as e:
+            logging.error(f"An error course while increasing the active_trackers count. Error {e}")
+            return StandardResponse.standard_error(e)
     def decrease_active_trackers_count(self,user_id):
-        user = self.session.query(User).filter_by(user_id=user_id).first()
-        user.active_tracker -= 1
-        self.session.commit()
+        try:
+            user = self.session.query(User).filter_by(user_id=user_id).first()
+            user.active_tracker -= 1
+            self.session.commit()
+        except Exception as e:
+            logging.error(f"An error course while decreasing the active_trackers count. Error {e}")
+            return StandardResponse.standard_error(e)
+    
+    def increase_total_data_count(self,user_id:int,tracker_name:str):
+        try:
+            tracker = self.session.query(Trackers).filter_by(user_id=user_id).filter_by(tracker_name=tracker_name) .first()
+            tracker.total_data += 1
+            self.session.commit()
+        except Exception as e:
+            logging.error(f"An error course while increasing the total_data count. Error {e}")
+            return StandardResponse.standard_error(e)
+        return StandardResponse.success()
+    def decrease_total_data_count(self,user_id:int,tracker_name:str):
+        try:
+            tracker = self.session.query(Trackers).filter_by(user_id=user_id).filter_by(tracker_name=tracker_name) .first()
+            tracker.total_data -= 1
+            self.session.commit()
+        except Exception as e:
+            logging.error(f"An error course while decreasing the total_data count. Error {e}")
+            return StandardResponse.standard_error(e)
+        return StandardResponse.success()
 
 
 

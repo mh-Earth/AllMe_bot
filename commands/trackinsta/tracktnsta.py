@@ -13,8 +13,6 @@ option:
 
 '''
 
-
-from pprint import pprint
 from modules.CommandMaker.Base import CommandModel
 from telegram.ext import ContextTypes,CallbackContext
 from telegram import InputFile, Update
@@ -120,7 +118,7 @@ class TrackInsta(CommandModel):
         elif len(self.args) > 1:
             option:str = self.args[1].lower()
             '''options will only run if the user is in tracking'''
-            if not self._is_job_exits():
+            if self._is_job_exits():
                 '''Remove the tracker for given user (/trackinsta <username> remove)'''
                 if option == self.remove_option:
                     success = self._remove()
