@@ -278,6 +278,17 @@ class TelegramMessageFormate(BaseFormatter):
             msg = title + body
             return msg
 
+    # plot colormap message
+    def colormap_message(self) -> str:
+        from matplotlib import colormaps
+        colormaps = list(colormaps)
+        title = 'Available colormaps for plot\n'
+        des = ''
+        for index,color in enumerate(colormaps):
+            des += f'{index+1}. {color}\n'
+        
+        message = title + des
+        return message
 
 
     '''Command manual provider'''

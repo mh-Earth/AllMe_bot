@@ -6,6 +6,8 @@ option:
     initial:
     remove:
     log:
+    plot:
+    act:
     all?:
     checkout:?
     options?:
@@ -23,7 +25,8 @@ from configurations.settings import TRACKING_MODE,REPEAT_JOB_INTERVAL
 from typing import Final
 from .options import *
 from .plot import ActivityPlot,FFPlot
-from utils.comparator import is_diff,get_diff_val
+from utils.comparator import is_diff
+from .schema import Detection
 
 class TrackInsta(CommandModel):
     def __init__(self,update:Update,cxt:ContextTypes.DEFAULT_TYPE) -> None:
@@ -126,7 +129,6 @@ class TrackInsta(CommandModel):
                         remove_tracker = self.api.remove_tracker(user_id=self.user_id,tracker_name=self.username)
                         if remove_tracker.code == 200:
                             await self.update.effective_message.reply_text(f"Tracker removed from `{self.username}`") 
-                            await self.update.effective_message.reply_text(remove_tracker.text) 
                             
                             return
                         await self.update.effective_message.reply_text(f"Something went wrong.Failed to remove tracker for {self.username}") 
@@ -201,17 +203,18 @@ class TrackInsta(CommandModel):
                         plot = FFPlot(self.user_id,self.username).plot()
                         await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(plot, filename='activity.png'))
                         return 
-                        
 
-
-
-                    ...
                 elif option == self.activity_option:
-                    activity = ActivityPlot(self.user_id,self.username).plot()
+                    try:
+                        colormap = self.args[2].lower()
+                        if colormap.lower() in ['colormaps','colormap']:
+                            await self.update.effective_message.reply_text(self.formatter.colormap_message())
+                            return
+                    except IndexError:
+                        colormap = None
+                    activity = ActivityPlot(self.user_id,self.username).plot(colormap=colormap)
                     await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(activity, filename='activity.png'))
-                    return
-                    ...
-                
+                    return                
 
                 else:
                     await self.update.effective_message.reply_text(f"Invalid option `{option}`")
@@ -280,10 +283,11 @@ class TrackInsta(CommandModel):
             # print(f'new data {extracted_new_data} ||||| last val {last_value}')
             if is_diff(last_value,extracted_new_data):
                 '''Get different values'''
-                diff_val = get_diff_val(last_value,extracted_new_data)
-                await self.update.effective_message.reply_markdown_v2(self.formatter.changeDetected(diff_val),disable_web_page_preview=True)
-                '''Append new data'''
-                self.api.add_tracker_data(update=self.update,data=new_data)
+                diff_val = Detection(last_value,extracted_new_data).activity()
+                if len(diff_val) != 0:
+                    await self.update.effective_message.reply_markdown_v2(self.formatter.changeDetected(diff_val),disable_web_page_preview=True)
+                    '''Append new data'''
+                    self.api.add_tracker_data(update=self.update,data=new_data)
                 # self.localStorage.storeNewData(self.localStorage.extra_data_from_model(new_data))
 
 

@@ -17,6 +17,7 @@ class ActivityPlot:
         self.api = BaseConnector()
         self.user_id = user_id
         self.tracker_name = tracker_name
+        self.colormaps = list(colormaps)
 
         
     def _timestamp_to_readable_format(self,timestamp:float) -> str:
@@ -28,7 +29,13 @@ class ActivityPlot:
     def chose_colormap(self) -> str:
         return random.choice(list(colormaps))
 
-    def plot(self):
+    def plot(self,colormap:str=None):
+        if colormap == None:
+            colormap = self.chose_colormap()
+        else:
+            if colormap not in self.colormaps:
+                colormap = self.chose_colormap()
+
         hour = []
         minute = []
         timestamp = self.api.get_tracker_data_by_column(self.user_id,self.tracker_name,'timestamp')
@@ -63,14 +70,14 @@ class ActivityPlot:
 
         # create the plot
         plt.title(f"activity of {self.tracker_name}".upper())
-        plt.scatter(time,activity,alpha=0.75,s=90,cmap=self.chose_colormap(),linewidths=1,c=activity,edgecolors='black')
+        plt.scatter(time,activity,alpha=0.75,s=90,cmap=colormap,linewidths=1,c=activity,edgecolors='black')
 
         plt.tight_layout()
 
         plt.xticks([i for i in range(0,25)])
         plt.yticks([i for i in range(0,max(all_acts)+3)])
 
-        plt.colorbar().set_label("Activity count around all day")
+        plt.colorbar().set_label(f"Activity count around all day ({colormap})")
         
 
         plt.xlabel('Time (00-24) -->')
@@ -94,6 +101,7 @@ class FFPlot:
         self.user_id = user_id
         self.tracker_name = tracker_name
 
+    # def 
 
     def plot(self):
         
@@ -101,10 +109,19 @@ class FFPlot:
         following = []
         followers = []
         for data in continue_data:
-            following.append(data['following'])
-            followers.append(data['follower'])
-            
+            try:
+                if following[-1] != data['following']:
+                    following.append(data['following'])
+            except IndexError:
+                following.append(data['following'])
 
+            try:
+                if followers[-1] != data['follower']:
+                    followers.append(data['follower'])
+            except IndexError:
+                followers.append(data['follower'])
+
+            
         fig,(axi1,axi2) = plt.subplots(1,2)
         fig.suptitle(f"Follower and following of {self.tracker_name}")
         axi1.plot(followers, label='follower',c="r")
@@ -115,6 +132,9 @@ class FFPlot:
         # # plt.
         axi2.legend()
         axi1.legend()
+        
+        axi1.grid(True, linestyle='--', alpha=0.7)
+        axi2.grid(True, linestyle='--', alpha=0.7)
 
         # Save the plot to a BytesIO object
         plot = BytesIO()
