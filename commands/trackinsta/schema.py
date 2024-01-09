@@ -65,27 +65,3 @@ class Detection:
             logging.debug(activities)
             return activities
 
-if __name__ == '__main__':
-    val1 ={
-            'uid':'122334',
-            "username":'afnan.aksa',
-            "full_name":'afnan aksa',
-            "follower":122,
-            "following":22,
-            "isPrivate":False,
-            "bio": None,
-            "dp": None,
-            }
-    val2 = {
-            'uid':'122334',
-            "username":'afnan.aksa',
-            "full_name":'Afnan aksa',
-            "follower":122,
-            "following":23,
-            "isPrivate":False,
-            "bio": None,
-            "dp": None,
-            }
-    
-    d = Detection(val1,val2)
-    pprint(d.activity())
