@@ -6,12 +6,12 @@ import logging
 try:
 
     from .connect import session
-    from .models import Command,TrackinstaData,User,Trackers
+    from .models import TrackinstaData,User,Trackers
     from .dataModels import TrackinstaDataModel
     from .standard_response import StandardResponse
 except ImportError:
     from connect import session
-    from models import Command,TrackinstaData,User,Trackers
+    from models import TrackinstaData,User,Trackers
     from dataModels import TrackinstaDataModel
     from standard_response import StandardResponse
 
@@ -48,16 +48,16 @@ class Base:
         tracker = self.session.query(Trackers).filter_by(user_id=user_id).filter_by(tracker_name=tracker_name).first()
         if tracker:
             return StandardResponse.success(text=tracker.initial_data)
-        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
-        return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
+        return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
 
     def get_continues(self,user_id:int, tracker_name:str) -> StandardResponse:
         logging.debug(f'Queuing tracker ({user_id},{tracker_name} for continues_ids)')
         tracker = self.session.query(Trackers).filter_by(user_id=user_id).filter_by(tracker_name=tracker_name).first()
         if tracker:
             return StandardResponse.success(text=tracker.continues_data)
-        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
-        return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
+        return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
 
         
     def add_tracker(self,tracker_name:str,initial_data:str,user_id:int=None) -> StandardResponse:
@@ -88,7 +88,7 @@ class Base:
         if tracker:
             return StandardResponse.success(tracker=tracker)
         else:
-            return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+            return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
 
 
 
@@ -108,8 +108,8 @@ class Base:
             # step 5:Commit the change
             self.session.commit()
             return StandardResponse.success()
-        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
-        return StandardResponse.standard_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
+        return StandardResponse.standard_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
 
     def remove_continues(self,user_id,tracker_name,continues_data) -> StandardResponse:
         tracker = self.session.query(Trackers).filter_by(user_id=user_id).filter_by(tracker_name=tracker_name).first()
@@ -139,8 +139,8 @@ class Base:
             # step 3:Commit the change
             self.session.commit()
             return StandardResponse.success()
-        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
-        StandardResponse.null_error( self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+        logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
+        StandardResponse.null_error( self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
 
     def add_trackerData(self,data_model:TrackinstaDataModel) -> StandardResponse:
 
@@ -313,8 +313,8 @@ class Base:
             logging.info(f"Tracker {tracker} delete")
             return StandardResponse.success(f"Tracker {tracker} delete")
         else:
-            logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
-            return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(self.user_id,self.tracker_name))
+            logging.error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
+            return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
 
             
         ...

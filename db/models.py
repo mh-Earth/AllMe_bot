@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped,DeclarativeBase,mapped_column,relationship
-from sqlalchemy import ForeignKey,Text,String,Integer,Boolean,Float
+from sqlalchemy import ForeignKey,Text,String,Integer,Boolean,Float,BigInteger,Unicode
 from typing import Any, List,Optional
 import uuid
 import time
@@ -10,20 +10,15 @@ def gen_uuid():
 
 def create_at():
     return datetime.datetime.utcnow()
-
-
-
 class Base(DeclarativeBase):
     ...
 
-
-
 class User(Base):
-    __tablename__ = 'user'
-    user_id:Mapped[int] = mapped_column(Integer,primary_key=True)
-    telegram_username:Mapped[str] = mapped_column(String,nullable=True)
-    first_name:Mapped[str] = mapped_column(String,nullable=True)
-    last_name:Mapped[str] = mapped_column(String,nullable=True)
+    __tablename__ = 'users'
+    user_id:Mapped[int] = mapped_column(BigInteger,primary_key=True)
+    telegram_username:Mapped[str] = mapped_column(String(64),nullable=True)
+    first_name:Mapped[str] = mapped_column(String(64),nullable=True)
+    last_name:Mapped[str] = mapped_column(String(64),nullable=True)
     active_tracker:Mapped[int] = mapped_column(Integer,nullable=True)
     trackers:Mapped[List["Trackers"]] = relationship(back_populates='trackers')
 
@@ -43,10 +38,10 @@ class User(Base):
 
 class Trackers(Base):
     __tablename__ = 'trackers'
-    user_id:Mapped[int] = mapped_column(Integer, ForeignKey('user.user_id'),primary_key=True)
-    tracker_name:Mapped[str] = mapped_column(String,primary_key=True, nullable=False)
-    initial_data:Mapped[str] = mapped_column(String,nullable=False)
-    continues_data:Mapped[str] = mapped_column(String,nullable=True)
+    user_id:Mapped[int] = mapped_column(BigInteger, ForeignKey('users.user_id'),primary_key=True)
+    tracker_name:Mapped[str] = mapped_column(String(64),primary_key=True, nullable=False)
+    initial_data:Mapped[str] = mapped_column(String(64),nullable=False)
+    continues_data:Mapped[str] = mapped_column(Text,nullable=True)
     total_data:Mapped[int] = mapped_column(Integer,default=1)
 
     trackers:Mapped["User"] = relationship(back_populates='trackers')
@@ -64,36 +59,21 @@ class Trackers(Base):
         return f"<Tracker user_id={self.user_id}, tracker_name={self.tracker_name}>"
 
 
-
-class Command(Base):
-    __tablename__ = 'commands'
-    uid:Mapped[str] = mapped_column(primary_key=True,default=gen_uuid)
-    name:Mapped[str] = mapped_column(String,nullable=False,unique=True)
-    description:Mapped[str] = mapped_column(Text,nullable=False)
-
-    def __init__(self,name:str,description:str, **kw: Any):
-        super().__init__(**kw)
-        self.name = name
-        self.description = description
-
-    def __repr__(self) -> str:
-        return f"<command {self.name}>"
-
 class TrackinstaData(Base):
 
     __tablename__ = 'trackinstadata'
-    uid:Mapped[uuid.UUID] = mapped_column(String, primary_key=True)
-    username:Mapped[str] = mapped_column(String,nullable=False)
+    uid:Mapped[uuid.UUID] = mapped_column(String(64), primary_key=True)
+    username:Mapped[str] = mapped_column(String(64),nullable=False)
     follower:Mapped[int] = mapped_column(Integer,nullable=False)
     following:Mapped[int] = mapped_column(Integer,nullable=False)
     isPrivate:Mapped[bool] = mapped_column(Boolean,nullable=False)
-    full_name:Mapped[Optional[str]] = mapped_column(String)
-    bio:Mapped[Optional[str]] = mapped_column(Text)
+    full_name:Mapped[Optional[str]] = mapped_column(Unicode)
+    bio:Mapped[Optional[str]] = mapped_column(Unicode)
     dp:Mapped[Optional[str]] = mapped_column(Text)
     timestamp:Mapped[float] = mapped_column(Float,default=time.time)
 
 
-    # tracker:Mapped[str] = mapped_column(String,ForeignKey('trackinsta.tracker'))
+    # tracker:Mapped[str] = mapped_column(String(64),ForeignKey('trackinsta.tracker'))
 
     def __init__(self,uid:str,username:str,follower:int,following:int,isPrivate:bool,full_name:str|None=None,bio:str|None=None,dp:str|None=None,timestamp:float=None,**kw: Any):
         super().__init__(**kw)

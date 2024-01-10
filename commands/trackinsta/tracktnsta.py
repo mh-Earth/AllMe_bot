@@ -15,6 +15,7 @@ option:
 
 '''
 
+import logging
 from modules.CommandMaker.Base import CommandModel
 from telegram.ext import ContextTypes,CallbackContext
 from telegram import InputFile, Update
@@ -266,40 +267,36 @@ class TrackInsta(CommandModel):
             # self.localStorage.storeNewData(self.localStorage.extra_data_from_model(user_insta_data))
         else:
             await self.update.effective_message.reply_text(f"Failed to add track for {self.username}") 
-            await self.update.effective_message.reply_text(send_data.text) 
+            logging.error(send_data.text)
             return
 
-        
-
         '''Add user in job queue'''
-        async def callback(cxt:CallbackContext):
-            ''' getting public instagram data for id (name, follower, followee,bio etc..)'''
-            new_data =  self.insta.publicData()
-            extracted_new_data = [v for k,v in self.formatter.extract_data_from_model(new_data).items()][0]
-            '''Load previously stored data'''
-            storedData = self.api.get_last_log()
-            last_value = [v for k,v in storedData.items()][0]
-            '''Verify whether any earlier data has been stored, and if so, compare it with the new data'''
-            # print(f'new data {extracted_new_data} ||||| last val {last_value}')
-            if is_diff(last_value,extracted_new_data):
-                '''Get different values'''
-                diff_val = Detection(last_value,extracted_new_data).activity()
-                if len(diff_val) != 0:
-                    await self.update.effective_message.reply_markdown_v2(self.formatter.changeDetected(diff_val),disable_web_page_preview=True)
-                    '''Append new data'''
-                    self.api.add_tracker_data(update=self.update,data=new_data)
-                # self.localStorage.storeNewData(self.localStorage.extra_data_from_model(new_data))
-
-
         '''How often the job should run
            daily at given time or after a interval(s) later
            Default daily
         '''
         if self.TRACKING_MODE.lower() == "daily":
-            self._add_daily_job(callback)
+            self._add_daily_job(self.callback)
         elif self.TRACKING_MODE.lower() == "repeat":
-            self._add_repeating_job(callback,interval=self.REPEAT_JOB_INTERVAL) # 3 hour
+            self._add_repeating_job(self.callback,interval=self.REPEAT_JOB_INTERVAL) # 3 hour
         else:
-            self._add_daily_job(callback)
+            self._add_daily_job(self.callback)
 
+    async def callback(self,cxt:CallbackContext):
+        ''' getting public instagram data for id (name, follower, followee,bio etc..)'''
+        new_data =  self.insta.publicData()
+        extracted_new_data = [v for k,v in self.formatter.extract_data_from_model(new_data).items()][0]
+        '''Load previously stored data'''
+        storedData = self.api.get_last_log()
+        last_value = [v for k,v in storedData.items()][0]
+        '''Verify whether any earlier data has been stored, and if so, compare it with the new data'''
+        # print(f'new data {extracted_new_data} ||||| last val {last_value}')
+        if is_diff(last_value,extracted_new_data):
+            '''Get different values'''
+            diff_val = Detection(last_value,extracted_new_data).activity()
+            if len(diff_val) != 0:
+                await self.update.effective_message.reply_markdown_v2(self.formatter.changeDetected(diff_val),disable_web_page_preview=True)
+                '''Append new data'''
+                self.api.add_tracker_data(update=self.update,data=new_data)
+            # self.localStorage.storeNewData(self.localStorage.extra_data_from_model(new_data))
 
