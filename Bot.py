@@ -8,8 +8,8 @@ import logging
 import coloredlogs
 from utils.decorators import admin_only,indev,beta
 from configurations.settings import LOGGING_LEVEL,BOT_TOKEN
-from db.connect import engine
-from ptbcontrib.ptb_jobstores.sqlalchemy import PTBSQLAlchemyJobStore
+# from db.connect import engine
+# from ptbcontrib.ptb_jobstores.sqlalchemy import PTBSQLAlchemyJobStore
 
 # logging.basicConfig(level=logging.DEBUG)
 coloredlogs.install(level=LOGGING_LEVEL.upper(), fmt='%(asctime)s [%(funcName)s] [%(levelname)s]  %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
@@ -82,9 +82,9 @@ class Main():
 
     @staticmethod
     async def error(update:Update,context:ContextTypes.DEFAULT_TYPE):
-        # await update.effective_message.reply_text(f"Update cause error {context.error}")
         logging.error(f"Update cause error {context.error}")
         logging.debug(f"Update {update} cause error {context.error}")
+        await update.effective_message.reply_text(f"Update cause error {context.error}")
 
 if __name__ == "__main__":
     logging.info("Starting the bot...")

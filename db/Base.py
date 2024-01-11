@@ -35,8 +35,9 @@ class Base:
             'full_name':result.full_name,
             'follower':result.follower,
             'following':result.following,
-            'bio':result.bio,
             'isPrivate':result.isPrivate,
+            'verified':result.verified,
+            'bio':result.bio,
             'dp':result.dp,
             'timestamp':result.timestamp
         }
@@ -317,51 +318,5 @@ class Base:
             return StandardResponse.null_error(self.NO_TRACKER_FOUND_BY_USERID_AND_NAME.format(user_id,tracker_name))
 
             
-        ...
-    # def add_command(self,name:str,des:str) -> StandardResponse:
-    #     command = self.session.query(User).filter_by(name=name).count()
-    #     if command > 0:
-    #         logging.error(f'Command with name:{name} already exits!!!')
-    #         return StandardResponse.duplication_error(f'Command with name:{name} already exits!!!')
-    #     #
-    #     try:
-    #         command = Command(
-    #             name=name,
-    #             description=des
-    #         )
-    #         self.session.add(command)
-    #         self.session.commit()
-    #         return StandardResponse.success()
-    #     except Exception as e:
-    #         return StandardResponse.standard_error(e)
 
-            
-            
-
-
-
-if __name__ == "__main__":
-    connector = Base()
-    # # # # pprint(b.add_tracker('afnan.aksa9',"1","1",999999999))
-    # # user = self.session.query(User).filter_by(user_id=9999999799).count()
-    # # # b.add_user(999999999,'meherab','hossain',[])
-    # # print(user)
-    # # # pprint(b.add_continues(999999999,'afnan.aksa9',10))
-    uid = connector._gen_uuid()
-    data = TrackinstaDataModel(
-
-        uid=uid,
-        username='afnan.aksa',
-        follower=12,
-        following=21,
-        full_name='afnan.aksa',
-        dp='www.google.com',
-        isPrivate=True
-    )
-
-    data.username = 'me'
-    print(data.username)
-
-    # print(connector.find_tracker(6969696969,'username').kwargs['tracker'].user_id)
-        
 

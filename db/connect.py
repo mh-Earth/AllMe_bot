@@ -1,11 +1,12 @@
 from sqlalchemy import create_engine
-from configurations.settings import DATABASE_NAME,DATABASE_HOST,DATABASE_PASSWORD,DATABASE_USERNAME
+# from configurations.settings import DATABASE_NAME,DATABASE_HOST,DATABASE_PASSWORD,DATABASE_USERNAME
 from sqlalchemy.orm import Session
 
-# engine = create_engine(f"sqlite:///allme.db",echo=False)
+engine = create_engine(f"sqlite:///allme.db",echo=False)
 
 # engine = create_engine(f"mysql+pymysql://",echo=False)
-engine = create_engine(f"mysql+pymysql://{DATABASE_USERNAME}:{DATABASE_PASSWORD}@{DATABASE_HOST}/{DATABASE_NAME}",echo=False)
+# as i can serialize a job so using sql will just bring unintentional bugs
+# engine = create_engine(f"mysql+pymysql://{DATABASE_USERNAME}:{DATABASE_PASSWORD}@{DATABASE_HOST}/{DATABASE_NAME}",echo=False)
 
 
 # server='DESKTOP-G24QTHH\SQLEXPRESS'

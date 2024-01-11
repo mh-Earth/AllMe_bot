@@ -16,8 +16,7 @@ schema for public activity detection
     - privacy change
 '''
 
-from pprint import pprint
-from main.utils.comparator import get_diff_val
+from utils.comparator import get_diff_val
 import logging
 
 class Detection:

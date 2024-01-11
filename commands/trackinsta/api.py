@@ -30,7 +30,9 @@ class BaseConnector:
             if dp == None:
                 continue
             else:
+                logging.debug(f"Last dp found at {ids}")
                 return (ids,dp) # ('ec504cd0-a476-468c-807f-0151af132894', 'https://RdehaeGHZI.com')
+        logging.debug(f"No dp found ({user_id,tracker_name})")
         return (None,None)
         
         # return (ids,dp)
@@ -45,14 +47,16 @@ class BaseConnector:
             if dp == None:
                 continue
             else:
+                logging.debug(f"Initial dp found at {ids}")
                 return (ids,dp) # ('ec504cd0-a476-468c-807f-0151af132894', 'https://RdehaeGHZI.com')
+        logging.debug(f"No dp found ({user_id,tracker_name})")
         return (None,None)
         
         # return (ids,dp)
     
     def _get_last_found_bio(self,user_id:int,tracker_name:str) -> tuple:
         'Get the last store bio'
-        logging.debug(f"Getting last found dp for user_id:{user_id} tracker_name:{tracker_name}")
+        logging.debug(f"Getting last found bio for user_id:{user_id} tracker_name:{tracker_name}")
         # Get all continues data's
         data_ids = self.connector.get_continues(user_id,tracker_name).text.split(',')
         # reversed the list
@@ -62,7 +66,9 @@ class BaseConnector:
             if bio == None:
                 continue
             else:
+                logging.debug(f"Last bio found at {ids}")
                 return (ids,bio) # ('ec504cd0-a476-468c-807f-0151af132894', 'https://RdehaeGHZI.com')
+        logging.debug(f"No bio found ({user_id,tracker_name})")
         return (None,None)        
         # return (ids,dp)
 
@@ -101,10 +107,10 @@ class BaseConnector:
         # 'dp': None,
         # 'follower': 10,
         # 'following': 795,
-        # 'full_name': 'afnan.aksa',
+        # 'full_name': 'username',
         # 'isPrivate': True,
         # 'timestamp': 1703680581.1070664,
-        # 'username': 'afnan.aksa'},
+        # 'username': 'username'},
         # ...........
         # ...........
         # {'bio': None,
@@ -113,7 +119,7 @@ class BaseConnector:
         # 'following': 757,
         # 'isPrivate': True,
         # 'timestamp': 1703680581.1218953,
-        # 'username': 'afnan.aksa'}]   
+        # 'username': 'username'}]   
         '''
         return data
 
@@ -146,10 +152,10 @@ class BaseConnector:
         # 'dp': None,
         # 'follower': 10,
         # 'following': 795,
-        # 'full_name': 'afnan.aksa',
+        # 'full_name': 'username',
         # 'isPrivate': True,
         # 'timestamp': 1703680581.1070664,
-        # 'username': 'afnan.aksa'},
+        # 'username': 'username'},
         # ...........
         # ...........
         # {'bio': something,
@@ -158,7 +164,7 @@ class BaseConnector:
         # 'following': 757,
         # 'isPrivate': True,
         # 'timestamp': 1703680581.1218953,
-        # 'username': 'afnan.aksa'}]   
+        # 'username': 'username'}]   
         '''
         return data
  
@@ -313,6 +319,7 @@ class Converter:
         follower =  data['follower']
         following =  data['following']
         isPrivate = data['isPrivate']
+        verified = data['verified']
         bio = data['bio']
         dp = data['dp']
         timestamp = data['timestamp']
@@ -325,6 +332,7 @@ class Converter:
                 'follower':follower,
                 'following':following,
                 'isPrivate':isPrivate,
+                'verified':verified,
                 'bio':bio,
                 'dp':dp
 
@@ -382,25 +390,4 @@ class ConnectorUtils(BaseConnector,Converter):
             converted.update(self.format(logs))
         return converted
 
-            
-
-
-if __name__ == "__main__":
-    # conn = Connector('trackinsta','emi_lyitachi')
-    # data = {
-    #     "username":conn.username,
-    #     "full_name":'full_name',
-    #     "follower":12,
-    #     "following":32,
-    #     "isPrivate":True,
-    #     "bio": None,
-    #     "dp": 'url changed again',
-    #     }
-    
-    # dataModel = TrackinstaDataModel(**data)
-    # # print(conn.add_tracker(data=dataModel))
-    # print(conn.getPreviousData())
         
-        # print(converted)
-    bc = BaseConnector()
-    bc._get_last_found_dp(6969696969,'afnan.aksa')

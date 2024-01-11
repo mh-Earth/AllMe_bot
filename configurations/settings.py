@@ -4,12 +4,8 @@ from os import environ
 load_dotenv()
 
 BOT_TOKEN:Final=environ.get("BOT_TOKEN")
-API_ID:Final=environ.get('API_ID')
-API_HASH:Final=environ.get('API_HASH')
 BOT_USERNAME:Final=environ.get('BOT_USERNAME')
 INSTA_USERNAME:Final=environ.get('INSTA_USERNAME')
-INSTA_PASS:Final=environ.get('INSTA_PASS')
-NUMBER:Final=environ.get('NUMBER')
 LIST_OF_ADMINS:Final=list(map(int,(environ.get('LIST_OF_ADMINS').split(','))))
 DAILY_JOB_TIME:Final=environ.get('DAILY_JOB_TIME')
 LOGGING_LEVEL:Final=environ.get('LOGGING_LEVEL')
