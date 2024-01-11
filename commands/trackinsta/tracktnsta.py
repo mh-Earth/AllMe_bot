@@ -201,7 +201,7 @@ class TrackInsta(CommandModel):
                         await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(plot, filename='activity.png'))
                         return 
                     else:
-                        plot = FFPlot(self.user_id,self.username).following()
+                        plot = FFPlot(self.user_id,self.username).plot()
                         await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(plot, filename='activity.png'))
                         return 
 
