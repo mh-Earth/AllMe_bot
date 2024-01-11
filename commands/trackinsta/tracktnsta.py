@@ -201,7 +201,7 @@ class TrackInsta(CommandModel):
                         await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(plot, filename='activity.png'))
                         return 
                     else:
-                        plot = FFPlot(self.user_id,self.username).plot()
+                        plot = FFPlot(self.user_id,self.username).following()
                         await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(plot, filename='activity.png'))
                         return 
 
@@ -296,7 +296,11 @@ class TrackInsta(CommandModel):
             diff_val = Detection(last_value,extracted_new_data).activity()
             if len(diff_val) != 0:
                 await self.update.effective_message.reply_markdown_v2(self.formatter.changeDetected(diff_val),disable_web_page_preview=True)
+                self.api.add_tracker_data(update=self.update,data=new_data)
+
+            elif not new_data.verified:
                 '''Append new data'''
                 self.api.add_tracker_data(update=self.update,data=new_data)
+            
             # self.localStorage.storeNewData(self.localStorage.extra_data_from_model(new_data))
 

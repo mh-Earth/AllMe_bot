@@ -67,15 +67,16 @@ class TrackinstaData(Base):
     follower:Mapped[int] = mapped_column(Integer,nullable=False)
     following:Mapped[int] = mapped_column(Integer,nullable=False)
     isPrivate:Mapped[bool] = mapped_column(Boolean,nullable=False)
-    full_name:Mapped[Optional[str]] = mapped_column(Unicode)
-    bio:Mapped[Optional[str]] = mapped_column(Unicode)
+    verified:Mapped[bool] = mapped_column(Boolean,nullable=False)
+    full_name:Mapped[Optional[str]] = mapped_column(Unicode(length=64))
+    bio:Mapped[Optional[str]] = mapped_column(Unicode(length=200))
     dp:Mapped[Optional[str]] = mapped_column(Text)
     timestamp:Mapped[float] = mapped_column(Float,default=time.time)
 
 
     # tracker:Mapped[str] = mapped_column(String(64),ForeignKey('trackinsta.tracker'))
 
-    def __init__(self,uid:str,username:str,follower:int,following:int,isPrivate:bool,full_name:str|None=None,bio:str|None=None,dp:str|None=None,timestamp:float=None,**kw: Any):
+    def __init__(self,uid:str,username:str,follower:int,following:int,isPrivate:bool,verified:bool,full_name:str|None=None,bio:str|None=None,dp:str|None=None,timestamp:float=None,**kw: Any):
         super().__init__(**kw)
         self.uid = uid
         self.username = username
@@ -83,6 +84,7 @@ class TrackinstaData(Base):
         self.follower = follower
         self.following = following
         self.isPrivate = isPrivate
+        self.verified = verified
         self.bio = bio
         self.dp = dp
         self.timestamp = timestamp

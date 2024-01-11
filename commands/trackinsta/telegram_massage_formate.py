@@ -24,6 +24,7 @@ class FuckIamSickOfNamingThinksFormat:
     follower:int
     following:int
     isPrivate:bool
+    verified:bool
     bio:str
     dp:str
 
@@ -34,7 +35,7 @@ class TelegramMessageFormate(BaseFormatter):
         self.user_id = user_id
         self.username = username
         self.dbUtils = ConnectorUtils(user_id, username)
-        self.ini_list = ['Username','Full Name','Follower','Following','Private','Bio','Dp']
+        self.ini_list = ['Username','Full Name','Follower','Following','Private','Verified','Bio','Dp']
         self.FormateKeys = FuckIamSickOfNamingThinksFormat(*self.ini_list)
     
     def __call__(self,data:dict[str:dict]):
@@ -198,8 +199,8 @@ class TelegramMessageFormate(BaseFormatter):
         bio: BIO IF USER
         INFO:INFO
         '''
-        title = CHECKOUT_OPTION_TITLE.upper() if not isTracking else ""
-        info = CHECKOUT_OPTION_INFO.upper() if isTracking else ""
+        title = CHECKOUT_OPTION_TITLE.upper() if isTracking else CHECKOUT_OPTION_INFO.upper()
+        # info = CHECKOUT_OPTION_INFO.upper() if isTracking else ""
         if dataModel != None:
             data = self._format(self.extract_data_from_model(dataModel=dataModel))
             des = ''
@@ -208,9 +209,22 @@ class TelegramMessageFormate(BaseFormatter):
                     for k,v in i.items():
                         if k == self.FormateKeys.dp:
                             des += self._escape_markdown_pre(f'{k}: [DP]({v})\n')
+                        
+                        # Use emoji for true false instead of bool value
+                        elif k == self.FormateKeys.isPrivate:
+                            if v:
+                                des += self._escape_markdown_pre(f'{k}: ✅\n')
+                            else:
+                                des += self._escape_markdown_pre(f'{k}: ❌\n')
+
+                        elif k == self.FormateKeys.verified:
+                            if v:
+                                des += self._escape_markdown_pre(f'{k}: ✅\n')
+                            else:
+                                des += self._escape_markdown_pre(f'{k}: ❌\n')
                         else:
                             des += self._escape_markdown(f'{k}: {v}\n')
-            message = f"{title}\n\n{des}\n{info}"
+            message = f"{title}\n\n{des}"
             return message
         else:
             return 'USER NOT FOUND'
@@ -311,6 +325,7 @@ class TelegramMessageFormate(BaseFormatter):
                 'follower':dataModel.follower,
                 'following':dataModel.following,
                 'isPrivate':dataModel.isPrivate,
+                'verified':dataModel.verified,
                 'bio':dataModel.bio,
                 'dp':dataModel.dp
 

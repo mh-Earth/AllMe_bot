@@ -48,6 +48,8 @@ class Insta():
             bio = self.profile.biography
             # DP
             dp = self.profile.profile_pic_url
+            
+            verified = self.profile.is_verified
             # biography_mentions = self.profile.biography_mentions
             profile_url = f"https://www.instagram.com/{self.username}/"
 
@@ -55,13 +57,15 @@ class Insta():
             data = {
                 'uid':self._gen_uid(),
                 "username":self.username,
-                "full_name":full_name if full_name != '' else None,
+                "full_name":full_name,
                 "follower":follower,
                 "following":followee,
                 "isPrivate":isPrivate,
                 "bio": bio,
+                "verified":verified,
                 "dp": dp,
             }
+            logging.debug(f'Data for checkout:{data}')
             return TrackinstaDataModel(**data)
 
         else:
@@ -84,6 +88,9 @@ class Insta():
             bio = self.profile.biography
             # dp
             dp = self.profile.profile_pic_url
+            # verified
+            verified = self.profile.is_verified
+
 
             data =  {
                 'uid':self._gen_uid(),
@@ -91,11 +98,13 @@ class Insta():
                 "full_name":full_name,
                 "follower":follower,
                 "following":followee,
+                "verified":verified,
                 "isPrivate":isPrivate,
                 "bio": bio if bio != "" else None,
                 'dp':dp
 
                 }
+            logging.debug(f'Data for publicData:{data}')
             return TrackinstaDataModel(**data)
 
         else:

@@ -318,22 +318,22 @@ class Base:
 
             
         ...
-    def add_command(self,name:str,des:str) -> StandardResponse:
-        command = self.session.query(User).filter_by(name=name).count()
-        if command > 0:
-            logging.error(f'Command with name:{name} already exits!!!')
-            return StandardResponse.duplication_error(f'Command with name:{name} already exits!!!')
-        #
-        try:
-            command = Command(
-                name=name,
-                description=des
-            )
-            self.session.add(command)
-            self.session.commit()
-            return StandardResponse.success()
-        except Exception as e:
-            return StandardResponse.standard_error(e)
+    # def add_command(self,name:str,des:str) -> StandardResponse:
+    #     command = self.session.query(User).filter_by(name=name).count()
+    #     if command > 0:
+    #         logging.error(f'Command with name:{name} already exits!!!')
+    #         return StandardResponse.duplication_error(f'Command with name:{name} already exits!!!')
+    #     #
+    #     try:
+    #         command = Command(
+    #             name=name,
+    #             description=des
+    #         )
+    #         self.session.add(command)
+    #         self.session.commit()
+    #         return StandardResponse.success()
+    #     except Exception as e:
+    #         return StandardResponse.standard_error(e)
 
             
             

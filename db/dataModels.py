@@ -7,6 +7,7 @@ class TrackinstaDataModel:
     username:str
     follower:int
     following:int
+    verified:bool
     full_name:str|None =None
     bio:str|None = None
     isPrivate:bool=False
@@ -24,6 +25,7 @@ class TrackinstaDataModel:
             'follower':self.follower,
             'following':self.following,
             'isPrivate':self.isPrivate,
+            'verified':self.verified,
             'dp':self.dp,
             'timestamp':self.timestamp
         }
