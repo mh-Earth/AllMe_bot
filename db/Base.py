@@ -1,7 +1,6 @@
-from dataclasses import dataclass
 import uuid
-from pprint import pprint
 import logging
+from configurations.settings import MAX_DATA_TO_STORE_LIMIT,MAX_TRACKER_LIMIT
 
 try:
 
@@ -17,8 +16,8 @@ except ImportError:
 
 
 class Base:
-    MAX_DATA_LIMIT = 100
-    MAX_TRACKER_LIMIT = 3
+    MAX_DATA_LIMIT = MAX_DATA_TO_STORE_LIMIT
+    MAX_TRACKER_LIMIT = MAX_TRACKER_LIMIT
     NO_TRACKER_FOUND_BY_USERID_AND_NAME = 'No Tracker found with (user_id:{0}, tracker_name:{1})'
 
     def __init__(self) -> None:

@@ -36,6 +36,29 @@ class User(Base):
     def __repr__(self) -> str:
         return f"<User username = {self.first_name}, user_id = {self.user_id}>"
 
+# class Testers(Base):
+#     __tablename__ = 'testers'
+#     user_id:Mapped[int] = mapped_column(BigInteger,primary_key=True)
+#     telegram_username:Mapped[str] = mapped_column(String(64),nullable=True)
+#     first_name:Mapped[str] = mapped_column(String(64),nullable=True)
+#     last_name:Mapped[str] = mapped_column(String(64),nullable=True)
+#     active_tracker:Mapped[int] = mapped_column(Integer,nullable=True)
+#     trackers:Mapped[List["Trackers"]] = relationship(back_populates='trackers')
+
+
+#     def __init__(self,username:str,user_id:int,first:str,last:str,trackers:list['Trackers'],active_tracker:int=-1, **kw: Any):
+    
+#         super().__init__(**kw)
+#         self.user_id = user_id
+#         self.telegram_username = username
+#         self.first_name = first
+#         self.last_name = last
+#         self.trackers = trackers
+#         self.active_tracker = active_tracker
+
+#     def __repr__(self) -> str:
+#         return f"<User username = {self.first_name}, user_id = {self.user_id}>"
+
 class Trackers(Base):
     __tablename__ = 'trackers'
     user_id:Mapped[int] = mapped_column(BigInteger, ForeignKey('users.user_id'),primary_key=True)

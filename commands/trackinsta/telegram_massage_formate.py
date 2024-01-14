@@ -1,4 +1,4 @@
-from pprint import pprint
+
 import logging
 from modules.CommandMaker.Formatter import BaseFormatter
 from const import trackInsta_help_message,trackinsta_option_list
@@ -6,7 +6,7 @@ from .api import ConnectorUtils
 from dataclasses import dataclass
 from db.dataModels import TrackinstaDataModel
 from time import time
-from utils.comparator import get_diff_val,are_images_same
+from utils.comparator import get_diff_val
 from telegram.helpers import escape_markdown
 from .messages import STATUS_OPTION_TITLE
 from .messages import INITIAL_OPTION_TITLE
@@ -42,11 +42,11 @@ class TelegramMessageFormate(BaseFormatter):
         return self._format(data)
     
     @staticmethod
-    def _escape_markdown_pre(text:str):
+    def _escape_markdown_pre(text:str) -> str:
         logging.debug('escaping markdown')
         return escape_markdown(text,version=2,entity_type='pre')
     @staticmethod
-    def _escape_markdown(text:str):
+    def _escape_markdown(text:str) -> str:
         logging.debug('escaping markdown')
         return escape_markdown(text,version=2)
 
@@ -80,8 +80,27 @@ class TelegramMessageFormate(BaseFormatter):
                 for k,v in values.items():
                     if k == self.FormateKeys.dp:
                         body += self._escape_markdown_pre(f'{k}: [Dp]({v})\n')
+
+                    elif k == self.FormateKeys.isPrivate:
+                        if v:
+                            body += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
+                        else:
+                            body += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
+
+                    elif k == self.FormateKeys.verified:
+                        if v:
+                            body += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
+                        else:
+                            body += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
+
+                    elif k == self.FormateKeys.bio:
+                        if v==None or v=='':
+                            body += self._escape_markdown_pre(f'{k}: No bio found 💤\n')
+                        else:
+                            body += self._escape_markdown(f'{k}: {v}\n')
                     else:
                         body += self._escape_markdown(f'{k}: {v}\n')
+
 
                 
         msg = title + body
@@ -109,6 +128,25 @@ class TelegramMessageFormate(BaseFormatter):
                 for k,v in d.items():
                     if k == self.FormateKeys.dp:
                         body += self._escape_markdown_pre(f'{k}: [Dp]({v})\n')
+                                        # Use emoji for true false instead of bool value
+                    elif k == self.FormateKeys.isPrivate:
+                        if v:
+                            body += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
+                        else:
+                            body += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
+
+                    elif k == self.FormateKeys.verified:
+                        if v:
+                            body += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
+                        else:
+                            body += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
+                    
+                    elif k == self.FormateKeys.bio:
+                        if v==None or v=='':
+                            body += self._escape_markdown_pre(f'{k}: No bio found on profile 💤\n')
+                        else:
+                            body += self._escape_markdown(f'{k}: {v}\n')
+
                     else:
                         body += self._escape_markdown(f'{k}: {v}\n')
 
@@ -128,21 +166,23 @@ class TelegramMessageFormate(BaseFormatter):
         logging.debug(f'Change detected. Formatting data. data = "{data}"')
         for key,old,new in data:
             if key == self.FormateKeys.dp.lower():
-                logging.debug(f'Change {key}')
-                if new != None:
-                    if not are_images_same(old,new):
-                        des += f"{key} change:"
-                        des += self._escape_markdown_pre(f'[old]({old})')
-                        des +=self._escape_markdown(" -> ")
-                        des += self._escape_markdown_pre(f"[new]({new})")
-                        des += '\n'
-                    else:    
-                        ...
+                des += f"{key} change:"
+                des += self._escape_markdown_pre(f'[old]({old})')
+                des +=self._escape_markdown(" -> ")
+                des += self._escape_markdown_pre(f"[new]({new})")
+                des += '\n'
 
             if key == self.FormateKeys.bio.lower():
                 logging.debug(f'Change {key}')
                 if new != None:
                     des += self._escape_markdown(f"{key}:{old} -> {new}\n")
+                
+            elif key == self.FormateKeys.isPrivate:
+                body += self._escape_markdown_pre(f'{key}: {self.bool_to_emoji(old)} -> {self.bool_to_emoji(new)} \n')
+
+            elif key == self.FormateKeys.verified:
+                body += self._escape_markdown_pre(f'{key}: {self.bool_to_emoji(old)} -> {self.bool_to_emoji(new)} \n')
+            
             else:
                 logging.debug(f'Change {key}')
                 if key in ['dp','bio']:
@@ -213,15 +253,22 @@ class TelegramMessageFormate(BaseFormatter):
                         # Use emoji for true false instead of bool value
                         elif k == self.FormateKeys.isPrivate:
                             if v:
-                                des += self._escape_markdown_pre(f'{k}: ✅\n')
+                                des += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
                             else:
-                                des += self._escape_markdown_pre(f'{k}: ❌\n')
+                                des += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
 
                         elif k == self.FormateKeys.verified:
                             if v:
-                                des += self._escape_markdown_pre(f'{k}: ✅\n')
+                                des += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
                             else:
-                                des += self._escape_markdown_pre(f'{k}: ❌\n')
+                                des += self._escape_markdown_pre(f'{k}: {self.bool_to_emoji(v)} \n')
+
+                        elif k == self.FormateKeys.bio:
+                            if v==None or v=='':
+                                des += self._escape_markdown_pre(f'{k}: No bio found on profile 💤\n')
+                            else:
+                                des += self._escape_markdown(f'{k}: {v}\n')
+
                         else:
                             des += self._escape_markdown(f'{k}: {v}\n')
             message = f"{title}\n\n{des}"

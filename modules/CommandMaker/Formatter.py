@@ -10,10 +10,13 @@ class BaseFormatter():
         Args:
             timestamp (float): The timestamp to convert.
 
-        Returns:
+        Returns:'
             str: A string representing the formatted date and time.
         """
         return  datetime.fromtimestamp(timestamp).strftime('%A %H:%M:%S %Y-%m-%d')
+    
+    def bool_to_emoji(self,boolVal:bool) -> str:
+        return 'Yes ✅' if boolVal else 'No ❌'
 
 
     

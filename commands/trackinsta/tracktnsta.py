@@ -28,6 +28,7 @@ from .options import *
 from .plot import ActivityPlot,FFPlot
 from utils.comparator import is_diff
 from .schema import Detection
+import string
 
 class TrackInsta(CommandModel):
     def __init__(self,update:Update,cxt:ContextTypes.DEFAULT_TYPE) -> None:
@@ -124,7 +125,7 @@ class TrackInsta(CommandModel):
             '''options will only run if the user is in tracking'''
             if self._is_job_exits():
                 '''Remove the tracker for given user (/trackinsta <username> remove)'''
-                if option == self.remove_option:
+                if option in self.remove_option:
                     success = self._remove()
                     if success:
                         remove_tracker = self.api.remove_tracker(user_id=self.user_id,tracker_name=self.username)
@@ -136,22 +137,22 @@ class TrackInsta(CommandModel):
                         return
 
                 # '''See the first store data'''
-                elif option == self.initial_option :
+                elif option in self.initial_option:
                     await self.update.effective_message.reply_markdown_v2(self.formatter.initial())
                     return
                 
                 # '''See last store data'''
-                elif option == self.status_option :
+                elif option in self.status_option :
                     await self.update.effective_message.reply_markdown_v2(self.formatter.status())
                     return
                 
                 # '''See live status of a user info (tracker required)'''
-                elif option == self.checkout_option:
+                elif option in self.checkout_option:
                     await self.update.effective_message.reply_markdown_v2(self.formatter.checkout_option(self.insta.checkout(),True))
                     return
                 
                 # '''See change log of a user info'''
-                elif option == self.log_option:
+                elif option in self.log_option:
                     logs = self.formatter.log_option()
                     if len(logs) > self.formatter.TELEGRAM_MAX_MESSAGE_LENGTH:
                         from io import BytesIO
@@ -167,7 +168,7 @@ class TrackInsta(CommandModel):
                     await self.update.effective_message.reply_markdown_v2(logs,disable_web_page_preview=True)
                     return
                 # '''See change log of a user info'''
-                elif option == self.history_option:
+                elif option in self.history_option:
                     history = self.formatter.history_message()
                     if len(history) > self.formatter.TELEGRAM_MAX_MESSAGE_LENGTH:
                         from io import BytesIO
@@ -183,7 +184,7 @@ class TrackInsta(CommandModel):
                     
                     await self.update.effective_message.reply_text(history,disable_web_page_preview=True)
                     return
-                elif option == self.plot_option:
+                elif option in self.plot_option:
                     try:
                         what_to_plot = self.args[2].lower()
                     except IndexError:
@@ -205,7 +206,7 @@ class TrackInsta(CommandModel):
                         await self.cxt.bot.send_photo(chat_id=self.cxt._chat_id, photo=InputFile(plot, filename='activity.png'))
                         return 
 
-                elif option == self.activity_option:
+                elif option in self.activity_option:
                     try:
                         colormap = self.args[2].lower()
                         if colormap.lower() in ['colormaps','colormap']:
@@ -222,12 +223,12 @@ class TrackInsta(CommandModel):
                     return
 
             # '''Detailed info on all tracking'''
-            elif option == 'debug' and self.username == self.tracking_list_option:
+            elif option in ['debug','d'] and self.username == self.tracking_list_option:
                 data = self._getAllJobs(user_id=-1)
                 await self.update.effective_message.reply_text(str(data))
                 return
             
-            elif option == self.checkout_option and not self.username.endswith('?'):
+            elif option in self.checkout_option and not self.username.endswith('?'):
                 await self.update.effective_message.reply_markdown_v2(self.formatter.checkout_option(self.insta.checkout(),False))
                 return
 
@@ -246,7 +247,8 @@ class TrackInsta(CommandModel):
             return 
 
         '''If username exist'''
-        if not self.insta.lookup():
+        profile = self.insta.lookup()
+        if not profile:
             await self.update.effective_message.reply_text(f"Something went wrong.Check if user '{self.username}' exist") 
             return
         
@@ -257,7 +259,7 @@ class TrackInsta(CommandModel):
             return
         '''Id found'''
         '''Tracking user and sending its data to db'''
-        user_insta_data = self.insta.publicData()
+        user_insta_data = self.insta.publicData(profile)
         '''Send the first result when start tracking'''
         send_data = self.api.add_new_tracker(self.update, data=user_insta_data)
         if  send_data.code == 200:
@@ -282,20 +284,20 @@ class TrackInsta(CommandModel):
         else:
             self._add_daily_job(self.callback)
 
+
+
     async def callback(self,cxt:CallbackContext):
         ''' getting public instagram data for id (name, follower, followee,bio etc..)'''
-        new_data =  self.insta.publicData()
+        new_data =  self.insta.publicData(self.insta.lookup())
         extracted_new_data = [v for k,v in self.formatter.extract_data_from_model(new_data).items()][0]
         '''Load previously stored data'''
         storedData = self.api.get_last_log()
         last_value = [v for k,v in storedData.items()][0]
-        '''Verify whether any earlier data has been stored, and if so, compare it with the new data'''
-        # print(f'new data {extracted_new_data} ||||| last val {last_value}')
         if is_diff(last_value,extracted_new_data):
             '''Get different values'''
-            diff_val = Detection(last_value,extracted_new_data).activity()
-            if len(diff_val) != 0:
-                await self.update.effective_message.reply_markdown_v2(self.formatter.changeDetected(diff_val),disable_web_page_preview=True)
+            activity = Detection(last_value,extracted_new_data).activity()
+            if len(activity) != 0:
+                await self.update.effective_message.reply_markdown_v2(self.formatter.changeDetected(activity),disable_web_page_preview=True)
                 self.api.add_tracker_data(update=self.update,data=new_data)
 
             elif not new_data.verified:

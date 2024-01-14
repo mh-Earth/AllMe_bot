@@ -21,13 +21,13 @@ def restricted(func):
     async def wrapped(update:Update,context:ContextTypes.DEFAULT_TYPE,*args,**kwargs):
         user_id = context._user_id
         if user_id not in LIST_OF_TEST_USER:
-            logging.warning("User ID {} tried to use in-dev command `{}`".format(user_id,update.effective_message.text))
+            logging.warning("User ID {} tried to use restricted command `{}`".format(user_id,update.effective_message.text))
             return
         return await func(update,context,*args,**kwargs)
     
     return wrapped
 
-def indev(func):
+def beta(func):
     @wraps(func)
     async def wrapped(update:Update,context:ContextTypes.DEFAULT_TYPE,*args,**kwargs):
         user_id = context._user_id
@@ -40,10 +40,9 @@ def indev(func):
 
     return wrapped
 
-def beta(func):
+def production(func):
     @wraps(func)
     async def wrapped(update:Update,context:ContextTypes.DEFAULT_TYPE,*args,**kwargs):
-
         logging.info(f'[Running Command] ({update.message.text}) from {update.effective_user.username} ({update.effective_user.first_name} {update.effective_user.last_name})')
         return await func(update,context,*args,**kwargs)
 

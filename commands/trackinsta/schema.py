@@ -16,7 +16,7 @@ schema for public activity detection
     - privacy change
 '''
 
-from utils.comparator import get_diff_val
+from utils.comparator import get_diff_val,are_images_same
 import logging
 
 class Detection:
@@ -42,13 +42,23 @@ class Detection:
                 if key == 'follower':
                     if new < old:
                         activities.remove(change)
-
                 # only keep  following up 📈                       
                 elif key == 'following':
                     if new < old:
                         activities.remove(change)
+                elif key == 'dp':
+                    try:
+                        if are_images_same(old,new):
+                            activities.remove(change)
+                    except Exception as e:
+                            logging.exception(e)
+                            activities.remove(change)
+
+
             logging.debug(activities)
             return activities
+                        
+
             
         elif self.account_type() == 'not-private':
             for change in activities:
@@ -56,10 +66,19 @@ class Detection:
                 # remove any follower up down activity
                 if key == 'follower':
                     activities.remove(change)
-                # remove any follower or following down activity
-                if key == 'following':
+                # remove any follower or following down activity.(means only following will pass)
+                elif key == 'following':
                     if new < old:
                         activities.remove(change)
+                        
+                elif key == 'dp':
+                    try:
+                        if are_images_same(old,new):
+                            activities.remove(change)
+                    except Exception as e:
+                            logging.exception(e)
+                            activities.remove(change)
+
             
             logging.debug(activities)
             return activities

@@ -1,5 +1,6 @@
 '''Base class for interacting with Instaloader module'''
 import instaloader
+from instaloader.structures import Profile
 import logging
 import requests
 from configurations.settings import INSTA_USERNAME
@@ -31,100 +32,57 @@ class Insta():
     def _gen_uid(self)->str:
         return str(uuid.uuid4())
     
-    '''Same as getPublic data bt with profile picture'''
-    def checkout(self) -> TrackinstaDataModel | None:
-        is_id_exits = self.lookup()
-        if is_id_exits:
-            self.profile = instaloader.Profile.from_username(self.L.context, self.username)
-            # full name
-            full_name = self.profile.full_name
-            # follower
-            follower = self.profile.followers
-            # followee
-            followee = self.profile.followees
-            # isPrivate
-            isPrivate = self.profile.is_private
-            # bio
-            bio = self.profile.biography
-            # DP
-            dp = self.profile.profile_pic_url
-            
-            verified = self.profile.is_verified
-            # biography_mentions = self.profile.biography_mentions
-            profile_url = f"https://www.instagram.com/{self.username}/"
+    def checkout(self) -> TrackinstaDataModel:
+        return self.publicData(self.lookup())
 
 
-            data = {
-                'uid':self._gen_uid(),
-                "username":self.username,
-                "full_name":full_name,
-                "follower":follower,
-                "following":followee,
-                "isPrivate":isPrivate,
-                "bio": bio,
-                "verified":verified,
-                "dp": dp,
-            }
-            logging.debug(f'Data for checkout:{data}')
-            return TrackinstaDataModel(**data)
+    def publicData(self,profile:Profile) -> TrackinstaDataModel | None:
+        # full name
+        full_name = profile.full_name
+        # follower
+        follower = profile.followers
+        # followee
+        followee = profile.followees
+        # isPrivate
+        isPrivate = profile.is_private
+        # bio
+        bio = profile.biography
+        # DP
+        dp = profile.profile_pic_url
+        
+        verified = profile.is_verified
 
-        else:
-            logging.info(f"'{self.username}' Not Found!!")
-            return None
+
+        data = {
+            'uid':self._gen_uid(),
+            "username":self.username,
+            "full_name":full_name,
+            "follower":follower,
+            "following":followee,
+            "isPrivate":isPrivate,
+            "bio": bio if bio != "" else None,
+            "verified":verified,
+            "dp": dp,
+        }
+        logging.debug(f'Data for job:{data}')
+        return TrackinstaDataModel(**data)
     
-    def publicData(self) -> TrackinstaDataModel | None:
-        is_id_exits = self.lookup()
-        if is_id_exits:
-            self.profile = instaloader.Profile.from_username(self.L.context, self.username)
-            # full name
-            full_name = self.profile.full_name
-            # follower
-            follower = self.profile.followers
-            # followee
-            followee = self.profile.followees
-            # isPrivate
-            isPrivate = self.profile.is_private
-            # bio
-            bio = self.profile.biography
-            # dp
-            dp = self.profile.profile_pic_url
-            # verified
-            verified = self.profile.is_verified
 
-
-            data =  {
-                'uid':self._gen_uid(),
-                "username":self.username,
-                "full_name":full_name,
-                "follower":follower,
-                "following":followee,
-                "verified":verified,
-                "isPrivate":isPrivate,
-                "bio": bio if bio != "" else None,
-                'dp':dp
-
-                }
-            logging.debug(f'Data for publicData:{data}')
-            return TrackinstaDataModel(**data)
-
-        else:
-            logging.info(f"'{self.username}' Not Found!!")
-            return None
-    
-    def lookup(self):
+    def lookup(self) -> Profile:
         try:
-            return True if instaloader.Profile.from_username(self.L.context,self.username) else False
+            return instaloader.Profile.from_username(self.L.context,self.username)
         except Exception as e:
             logging.error(e)
             try:
                 logging.warning(f"{e}. Trying to load session")
                 try:
-
                     self.L.load_session_from_file(INSTA_USERNAME,f"session-{INSTA_USERNAME}")
                 except:
                     logging.error("Failed to load session for instagram")
                     return False
-                return True if instaloader.Profile.from_username(self.L.context,self.username) else False
+                
+                return instaloader.Profile.from_username(self.L.context,self.username)
+                # return True if instaloader.Profile.from_username(self.L.context,self.username) else False
             except Exception as e:
                 logging.error(e)
                 return False

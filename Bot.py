@@ -6,13 +6,13 @@ from commands.trackinsta.tracktnsta import TrackInsta
 from commands.wiki.wiki import Wiki
 import logging
 import coloredlogs
-from utils.decorators import admin_only,indev,beta
+from utils.decorators import admin_only,beta,production
 from configurations.settings import LOGGING_LEVEL,BOT_TOKEN
 # from db.connect import engine
 # from ptbcontrib.ptb_jobstores.sqlalchemy import PTBSQLAlchemyJobStore
 
 # logging.basicConfig(level=logging.DEBUG)
-coloredlogs.install(level=LOGGING_LEVEL.upper(), fmt='%(asctime)s [%(funcName)s] [%(levelname)s]  %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
+coloredlogs.install(level=LOGGING_LEVEL.upper(), fmt='%(asctime)s [%(funcName)s] [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S', colors={'DEBUG': 'green', 'INFO': 'blue', 'WARNING': 'yellow', 'ERROR': 'red', 'CRITICAL': 'bold_red'})
 logging.getLogger('httpx').setLevel(logging.ERROR)
 
 
@@ -21,12 +21,12 @@ class Main():
     _TOKEN:Final = BOT_TOKEN
 
     @staticmethod
-    # @indev
+    @production
     async def start_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
         logging.warning(f"User {update.effective_user.first_name} started the bot")
         await update.message.reply_text("Hello Sir...")
 
-    @indev
+    @beta
     async def help_command(self,update:Update, context:ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(help_menu)
 
@@ -36,12 +36,13 @@ class Main():
         await update.effective_message.reply_text(f'{context.chat_data}')
 
     @staticmethod
-    @beta
+    @production
     async def trackinsta_command(update:Update, context:ContextTypes.DEFAULT_TYPE):
         command = TrackInsta(update,context)
         await command.run()
 
     @staticmethod
+    @production
     async def wikipedia_command(update:Update,context:ContextTypes.DEFAULT_TYPE):
         wiki = Wiki(update,context)
         await wiki.run()
@@ -104,6 +105,7 @@ if __name__ == "__main__":
     App.add_handler(CommandHandler('start',bot.start_command))
     App.add_handler(CommandHandler('help',bot.help_command))
     App.add_handler(CommandHandler('custom',bot.custom_command))
+    # App.add_handler(CommandHandler('add_tester',bot.custom_command))
     # updater command
     App.add_handler(CommandHandler('wiki',bot.wikipedia_command,has_args=True,))
     App.add_handler(CommandHandler('trackinsta',bot.trackinsta_command,has_args=True))
@@ -112,7 +114,7 @@ if __name__ == "__main__":
     App.add_handler(MessageHandler(filters.TEXT,bot.handel_message))
 
     # Error
-    App.add_error_handler(bot.error)
+    # App.add_error_handler(bot.error)
 
 
     # Polls the bot
