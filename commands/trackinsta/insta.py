@@ -76,9 +76,13 @@ class Insta():
             try:
                 logging.warning(f"{e}. Trying to load session")
                 try:
-                    self.L.load_session_from_file(INSTA_USERNAME,f"session-{INSTA_USERNAME}")
-                except:
-                    logging.error("Failed to load session for instagram")
+                    if INSTA_USERNAME != None:
+                        self.L.load_session_from_file(INSTA_USERNAME,f"session-{INSTA_USERNAME}")
+                    else:
+                        logging.warning("Can not load session.No INSTA-USERNAME defined ")
+                        return False
+                except Exception as e:
+                    logging.error(f"Failed to load session for instagram ({e})")
                     return False
                 
                 return instaloader.Profile.from_username(self.L.context,self.username)

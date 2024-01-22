@@ -209,7 +209,7 @@ class BaseConnector:
 
         elif is_user and is_tracking:
             logging.debug(f"Resuming tracker for {tele_user.username} tracker={data.username} ")
-            self.add_tracker_data(update,data)
+            # self.add_tracker_data(update,data)
             return StandardResponse.success()
             
         else:

@@ -1,6 +1,6 @@
 import uuid
 import logging
-from configurations.settings import MAX_DATA_TO_STORE_LIMIT,MAX_TRACKER_LIMIT
+from main.configurations.settings import MAX_DATA_TO_STORE_LIMIT,MAX_TRACKER_LIMIT
 
 try:
 
@@ -285,9 +285,7 @@ class Base:
                 tracker_name=TrackerData.username,
                 initial_data=TrackerData.uid,
                 continues_data=TrackerData.uid
-
             )
-
             user = User(
                 username=username,
                 user_id=user_id,
@@ -295,7 +293,6 @@ class Base:
                 last=last_name,
                 trackers=[tracker],
                 active_tracker=1
-
             )
 
             self.session.add_all([TrackerData,user])
